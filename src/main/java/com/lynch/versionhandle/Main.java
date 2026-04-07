@@ -1,7 +1,12 @@
 package com.lynch.versionhandle;
 
+import com.lynch.versionhandle.cli.CommandParser;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.print("version handle");
+
+        CommandParser parser = new CommandParser();
+        parser.parse(args);
+
     }
 }
