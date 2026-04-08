@@ -1,5 +1,6 @@
 package com.lynch.versionhandle.cli;
 
+import com.lynch.versionhandle.service.AddService;
 import com.lynch.versionhandle.service.RepositoryService;
 
 public class CommandParser {
@@ -14,17 +15,30 @@ public class CommandParser {
         String command = args[0];
 
         switch(command) {
-            case("init"):
+            case "init":
                 new RepositoryService().init();
                 break;
-            case("add"):
+
+            case "add":
+                if(args.length < 2) {
+                    System.out.println("Nothing added, please specify files.");
+                    return;
+                }
+                for(int i = 1; i < args.length; i++) {
+                    String fileName = args[i];
+                    new AddService().add(fileName);
+                }
                 break;
-            case("commit"):
+
+            case "commit":
                 break;
-            case("log"):
+
+            case "log":
                 break;
-            case("branch"):
+
+            case "branch":
                 break;
+
             default:
                 System.out.println("Invalid command: " + command);
         }
