@@ -1,5 +1,7 @@
 package com.lynch.versionhandle.cli;
 
+import com.lynch.versionhandle.service.RepositoryService;
+
 public class CommandParser {
 
     public void parse(String[] args) {
@@ -13,6 +15,9 @@ public class CommandParser {
 
         switch(command) {
             case("init"):
+                new RepositoryService().init();
+                break;
+            case("add"):
                 break;
             case("commit"):
                 break;
