@@ -1,5 +1,8 @@
 package com.lynch.versionhandle.service;
 
+import com.lynch.versionhandle.util.HashUtil;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -9,13 +12,12 @@ public class AddService {
 
         Path repoPath = Path.of(".");
         Path vhPath = repoPath.resolve(".versionhandle");
+        Path filePath = repoPath.resolve(fileName);
 
         if(!Files.exists(vhPath)) {
             System.out.println("No versionhandle repository. Initialise project first.");
             return;
         }
-
-        Path filePath = vhPath.resolve(fileName);
 
         if(!Files.exists(filePath)) {
             System.out.println("File does not exist: " + fileName);
@@ -23,7 +25,20 @@ public class AddService {
         }
 
         try {
+            byte[] content = Files.readAllBytes(filePath);
+            String hash = HashUtil.sha256(content);
 
-        } catch(Exception e) {}
+            Path objectPath = vhPath.resolve("objects").resolve(hash);
+
+            if(!Files.exists(objectPath)) {
+                Files.write(objectPath, content);
+            }
+
+            System.out.println("File added: " + fileName);
+            System.out.println("Stored as: " + hash);
+
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to add file: " + fileName);
+        }
     }
 }
