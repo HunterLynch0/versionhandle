@@ -37,15 +37,16 @@ public class AddService {
 
             Path objectPath = vhPath.resolve("objects").resolve(hash);
 
+            // store
             if(!Files.exists(objectPath)) {
                 Files.write(objectPath, content);
             }
 
-            // indexing
+            // stage
             new IndexService().stageFile(repoPath, fileName, hash);
 
-            System.out.println("File added: " + fileName);
-            System.out.println("Stored as: " + hash);
+            System.out.println("File staged: " + fileName);
+            System.out.println("Object hash: " + hash);
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to add file: " + fileName, e);
