@@ -6,6 +6,10 @@ import java.nio.file.Path;
 
 public class Repository {
 
+    /**
+     * Initialises repository (sets up basic versionhandle folder structure)
+     * @param path the relevant repository
+     */
     public void initialise(Path path) {
 
         // create versionhandle path
@@ -17,7 +21,6 @@ public class Repository {
         }
 
         try {
-
             // create versionhandle folders
             Files.createDirectories(vhPath);
             Files.createDirectories(vhPath.resolve("objects"));

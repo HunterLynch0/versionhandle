@@ -5,6 +5,11 @@ import com.lynch.versionhandle.service.RepositoryService;
 
 public class CommandParser {
 
+    /**
+     * Processes command inputs and determines whether they are valid or not,
+     * then executes given action if valid
+     * @param args input command and arguments
+     */
     public void parse(String[] args) {
 
         if(args.length == 0) {

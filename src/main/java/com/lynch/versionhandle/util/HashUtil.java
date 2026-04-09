@@ -5,6 +5,11 @@ import java.security.NoSuchAlgorithmException;
 
 public class HashUtil {
 
+    /**
+     * Generates an SHA-256 hash of given byte array
+     * @param content byte array
+     * @return hashed content as a hex string
+     */
     public static String sha256(byte[] content) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
