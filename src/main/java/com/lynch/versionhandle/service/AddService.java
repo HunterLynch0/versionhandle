@@ -30,7 +30,7 @@ public class AddService {
             return;
         }
 
-        // hash content and add to objects
+        // hash content then store to objects + stage
         try {
             byte[] content = Files.readAllBytes(filePath);
             String hash = HashUtil.sha256(content);
@@ -41,11 +41,16 @@ public class AddService {
                 Files.write(objectPath, content);
             }
 
+            // indexing
+            new IndexService().stageFile(repoPath, fileName, hash);
+
             System.out.println("File added: " + fileName);
             System.out.println("Stored as: " + hash);
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to add file: " + fileName, e);
         }
+
+
     }
 }
