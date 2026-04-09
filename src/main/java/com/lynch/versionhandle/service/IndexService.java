@@ -1,5 +1,6 @@
 package com.lynch.versionhandle.service;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,7 +13,7 @@ public class IndexService {
     /**
      * Loads index from file
      * @param repoPath relevant repository
-     * @return index - a map from each filename to its latest add
+     * @return index - a map from each filename to its latest hash
      */
     public Map<String, String> loadIndex(Path repoPath) {
 
@@ -36,10 +37,34 @@ public class IndexService {
                 }
             }
 
+            fileScan.close();
+
         } catch(IOException e) {
-            throw new RuntimeException("Failed to load index.");
+            throw new RuntimeException("Failed to load index.", e);
         }
 
         return index;
+    }
+
+    /**
+     * Saves index to file
+     * @param repoPath relevant repository
+     * @param index map from each filename to its latest hash
+     */
+    public void saveIndex(Path repoPath, Map<String, String> index) {
+
+        Path indexPath = repoPath.resolve(".versionhandle").resolve("index");
+
+        try (FileWriter writer = new FileWriter(indexPath.toFile())) {
+
+            for (Map.Entry<String, String> entry : index.entrySet()) {
+                String fileName = entry.getKey();
+                String hash = entry.getValue();
+                writer.write(fileName + " " + hash + "\n");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save index.", e);
+        }
     }
 }

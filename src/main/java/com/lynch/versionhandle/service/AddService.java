@@ -45,7 +45,7 @@ public class AddService {
             System.out.println("Stored as: " + hash);
 
         } catch(IOException e) {
-            throw new RuntimeException("Failed to add file: " + fileName);
+            throw new RuntimeException("Failed to add file: " + fileName, e);
         }
     }
 }
