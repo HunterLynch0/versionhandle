@@ -70,7 +70,7 @@ public class IndexService {
 
     /**
      *
-     * @param repoPath relevent repository
+     * @param repoPath relevant repository
      * @param fileName file to be added and staged
      * @param hash hashed file contents as hex string
      */

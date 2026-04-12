@@ -3,6 +3,8 @@ package com.lynch.versionhandle.cli;
 import com.lynch.versionhandle.service.AddService;
 import com.lynch.versionhandle.service.RepositoryService;
 
+import java.nio.file.Path;
+
 public class CommandParser {
 
     /**
@@ -21,7 +23,7 @@ public class CommandParser {
 
         switch(command) {
             case "init":
-                new RepositoryService().init();
+                new RepositoryService().init(Path.of("."));
                 break;
 
             case "add":

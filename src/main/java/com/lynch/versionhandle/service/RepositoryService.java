@@ -1,15 +1,35 @@
 package com.lynch.versionhandle.service;
 
-import com.lynch.versionhandle.core.Repository;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class RepositoryService {
 
     /**
-     * Executes initialise from repository in the current directory
+     * Initialises repository (sets up basic versionhandle folder structure)
+     * @param path the relevant repository
      */
-    public void init() {
-        Repository repo = new Repository();
-        repo.initialise(Path.of("."));
+    public void init(Path path) {
+
+        // create versionhandle path
+        Path vhPath = path.resolve(".versionhandle");
+
+        if(Files.exists(vhPath)) {
+            System.out.println("Repository already exists");
+            return;
+        }
+
+        try {
+            // create versionhandle folders
+            Files.createDirectories(vhPath);
+            Files.createDirectories(vhPath.resolve("objects"));
+            Files.createDirectories(vhPath.resolve("commits"));
+
+            System.out.println("Repository initialised successfully.");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialise repository.", e);
+        }
     }
 }
