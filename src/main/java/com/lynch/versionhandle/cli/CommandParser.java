@@ -1,6 +1,7 @@
 package com.lynch.versionhandle.cli;
 
 import com.lynch.versionhandle.service.AddService;
+import com.lynch.versionhandle.service.CommitService;
 import com.lynch.versionhandle.service.RepositoryService;
 
 import java.nio.file.Path;
@@ -38,6 +39,10 @@ public class CommandParser {
                 break;
 
             case "commit":
+                if(args.length < 2) {
+                    System.out.println("Error, please provide commit message");
+                }
+                new CommitService().commit(args[1]);
                 break;
 
             case "log":

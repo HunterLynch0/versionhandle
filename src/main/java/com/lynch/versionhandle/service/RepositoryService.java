@@ -8,12 +8,12 @@ public class RepositoryService {
 
     /**
      * Initialises repository (sets up basic versionhandle folder structure)
-     * @param path the relevant repository
+     * @param repoPath the relevant repository
      */
-    public void init(Path path) {
+    public void init(Path repoPath) {
 
         // create versionhandle path
-        Path vhPath = path.resolve(".versionhandle");
+        Path vhPath = repoPath.resolve(".versionhandle");
 
         if(Files.exists(vhPath)) {
             System.out.println("Repository already exists");

@@ -20,7 +20,7 @@ public class AddService {
 
         // checks project is initialised
         if(!Files.exists(vhPath)) {
-            System.out.println("No versionhandle repository. Initialise project first.");
+            System.out.println("Not a versionhandle repository. Initialise project first.");
             return;
         }
 
