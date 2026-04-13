@@ -1,5 +1,6 @@
 package com.lynch.versionhandle.service;
 
+import com.lynch.versionhandle.model.Commit;
 import com.lynch.versionhandle.util.HashUtil;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class CommitService {
 
@@ -41,7 +43,8 @@ public class CommitService {
         // Build commit file
         StringBuilder commitContent = new StringBuilder();
         commitContent.append("Message: ").append(message).append("\n");
-        commitContent.append("Timestamp: ").append(timestamp).append("\n\n");
+        commitContent.append("Timestamp: ").append(timestamp).append("\n");
+        commitContent.append("Parent: ").append(parentId).append("\n\n");
 
         for(Map.Entry<String, String> entry: index.entrySet()) {
             commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
@@ -104,5 +107,34 @@ public class CommitService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to update CURRENT", e);
         }
+    }
+
+    public Commit loadCommit(Path repoPath, String commitId) {
+        Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commitId);
+
+        String message;
+        String timestamp;
+        String parent;
+        Map<String, String> snapshot = new HashMap<>();
+
+        try (Scanner fileScan = new Scanner(commitPath.toFile())) {
+            message = fileScan.nextLine().replaceFirst("Message: ", "");
+            timestamp = fileScan.nextLine().replaceFirst("TimeStamp: ", "");
+            parent = fileScan.nextLine().replaceFirst("Parent: ", "");
+            fileScan.nextLine();
+
+            while(fileScan.hasNextLine()) {
+                String[] parts = fileScan.nextLine().split(" ");
+                snapshot.put(parts[0], parts[1]);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load Commit", e);
+        }
+
+        return new Commit(commitId, message, timestamp, parent, snapshot);
+    }
+
+    public void saveCommit(Commit commit) {
+
     }
 }
