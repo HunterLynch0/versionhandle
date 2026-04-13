@@ -140,7 +140,7 @@ public class CommitService {
         StringBuilder commitContent = new StringBuilder();
 
         commitContent.append("Message: ").append(commit.getMessage()).append("\n");
-        commitContent.append("Timestamp ").append(commit.getTimestamp()).append("\n");
+        commitContent.append("Timestamp: ").append(commit.getTimestamp()).append("\n");
         commitContent.append("Parent: ").append(commit.getParentId()).append("\n\n");
 
         for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
