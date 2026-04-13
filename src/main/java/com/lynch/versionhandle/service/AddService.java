@@ -42,7 +42,7 @@ public class AddService {
 
     /**
      * Checks conditions for the file to be added then adds to staging area if valid
-     * @param repoPath path of relevant repository
+     * @param repoPath project root repository
      * @param fileName name of file requested to add
      */
     public void addSingleFile(Path repoPath, String fileName) {

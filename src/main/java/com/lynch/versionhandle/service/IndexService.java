@@ -12,7 +12,7 @@ public class IndexService {
 
     /**
      * Loads index from file
-     * @param repoPath relevant repository
+     * @param repoPath project root repository
      * @return index - a map from each filename to its latest hash
      */
     public Map<String, String> loadIndex(Path repoPath) {
@@ -48,7 +48,7 @@ public class IndexService {
 
     /**
      * Saves index to file
-     * @param repoPath relevant repository
+     * @param repoPath project root repository
      * @param index map from each filename to its latest hash
      */
     public void saveIndex(Path repoPath, Map<String, String> index) {

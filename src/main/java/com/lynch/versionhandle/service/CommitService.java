@@ -34,6 +34,8 @@ public class CommitService {
             return;
         }
 
+        String parentId = readCurrent(repoPath);
+
         String timestamp = LocalDateTime.now().toString();
 
         // Build commit file
@@ -62,7 +64,45 @@ public class CommitService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to commit snapshot: " + message, e);
         }
+    }
 
+    /**
+     * Reads CURRENT commit id
+     * @param repoPath project root repository
+     * @return id of CURRENT or null if first commit
+     */
+    public String readCurrent(Path repoPath) {
+        Path currentPath = repoPath.resolve(".versionhandle").resolve("CURRENT");
 
+        try {
+            if(!Files.exists(currentPath)) {
+                return null;
+            }
+
+            String content = Files.readString(currentPath).trim();
+
+            if(content.isEmpty()) {
+                return null;
+            }
+
+            return content;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read CURRENT", e);
+        }
+    }
+
+    /**
+     * Writes latest commit id to CURRENT
+     * @param repoPath project root repository
+     * @param hash hashed content (id)
+     */
+    public void writeCurrent(Path repoPath, String hash) {
+        Path currentPath = repoPath.resolve(".versionhandle").resolve("CURRENT");
+
+        try {
+            Files.writeString(currentPath, hash);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to update CURRENT", e);
+        }
     }
 }

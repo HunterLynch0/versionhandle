@@ -8,7 +8,7 @@ public class RepositoryService {
 
     /**
      * Initialises repository (sets up basic versionhandle folder structure)
-     * @param repoPath the relevant repository
+     * @param repoPath project root repository
      */
     public void init(Path repoPath) {
 
@@ -25,6 +25,7 @@ public class RepositoryService {
             Files.createDirectories(vhPath);
             Files.createDirectories(vhPath.resolve("objects"));
             Files.createDirectories(vhPath.resolve("commits"));
+            Files.createFile(vhPath.resolve("CURRENT"));
 
             System.out.println("Repository initialised successfully.");
 
