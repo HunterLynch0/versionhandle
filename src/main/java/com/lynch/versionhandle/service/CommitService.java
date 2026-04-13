@@ -137,6 +137,20 @@ public class CommitService {
     public void saveCommit(Path repoPath, Commit commit) {
         Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commit.getId());
 
+        StringBuilder commitContent = new StringBuilder();
 
+        commitContent.append("Message: ").append(commit.getMessage()).append("\n");
+        commitContent.append("Timestamp ").append(commit.getTimestamp()).append("\n");
+        commitContent.append("Parent: ").append(commit.getParentId()).append("\n\n");
+
+        for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
+            commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
+        }
+
+        try {
+            Files.write(commitPath, commitContent.toString().getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save commit.", e);
+        }
     }
 }
