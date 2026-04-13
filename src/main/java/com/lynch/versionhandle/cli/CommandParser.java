@@ -41,8 +41,13 @@ public class CommandParser {
             case "commit":
                 if(args.length < 2) {
                     System.out.println("Error, please provide commit message");
+                    return;
                 }
-                new CommitService().commit(args[1]);
+                StringBuilder message = new StringBuilder();
+                for(int i = 1; i < args.length; i++) {
+                    message.append(args[i]).append(" ");
+                }
+                new CommitService().commit(message.toString().trim());
                 break;
 
             case "log":
