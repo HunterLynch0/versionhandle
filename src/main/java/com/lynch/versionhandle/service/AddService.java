@@ -10,13 +10,14 @@ import java.util.List;
 public class AddService {
 
     /**
-     *
+     * Adds a file or all files in the repository to staging area
      * @param fileName name of file, or "." to add all
      */
     public void add(String fileName) {
 
         Path repoPath = Path.of(".");
 
+        // Either add recursively or adds a single file
         if(fileName.equals(".")) {
             try {
                 List<Path> files = Files.walk(repoPath).toList();
@@ -40,7 +41,7 @@ public class AddService {
     }
 
     /**
-     * Checks conditions for file to be added then adds to objects if valid
+     * Checks conditions for the file to be added then adds to staging area if valid
      * @param repoPath path of relevant repository
      * @param fileName name of file requested to add
      */
@@ -55,8 +56,8 @@ public class AddService {
             return;
         }
 
-        // Checks file exists in relevant directory
-        if(!Files.exists(filePath)) {
+        // Checks file exists in relevant directory and is a file not a directory
+        if(!Files.exists(filePath) || Files.isRegularFile(filePath)) {
             System.out.println("File does not exist: " + fileName);
             return;
         }
