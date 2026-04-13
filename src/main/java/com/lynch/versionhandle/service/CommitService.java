@@ -134,7 +134,9 @@ public class CommitService {
         return new Commit(commitId, message, timestamp, parent, snapshot);
     }
 
-    public void saveCommit(Commit commit) {
+    public void saveCommit(Path repoPath, Commit commit) {
+        Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commit.getId());
+
 
     }
 }
