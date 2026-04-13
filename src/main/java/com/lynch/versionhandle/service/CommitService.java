@@ -12,7 +12,8 @@ import java.util.Map;
 public class CommitService {
 
     /**
-     *
+     * Checks conditions for a snapshot to be commited then commits if valid
+     * @param message user provided message describing their commit
      */
     public void commit(String message) {
 

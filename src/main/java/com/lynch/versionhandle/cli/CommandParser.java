@@ -2,6 +2,7 @@ package com.lynch.versionhandle.cli;
 
 import com.lynch.versionhandle.service.AddService;
 import com.lynch.versionhandle.service.CommitService;
+import com.lynch.versionhandle.service.LogService;
 import com.lynch.versionhandle.service.RepositoryService;
 
 import java.nio.file.Path;
@@ -51,6 +52,7 @@ public class CommandParser {
                 break;
 
             case "log":
+                new LogService().log();
                 break;
 
             case "branch":
