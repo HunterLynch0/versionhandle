@@ -5,16 +5,47 @@ import com.lynch.versionhandle.util.HashUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class AddService {
 
     /**
-     * Checks conditions for file to be added then adds to objects if valid
-     * @param fileName name of file requested to add
+     *
+     * @param fileName name of file, or "." to add all
      */
     public void add(String fileName) {
 
         Path repoPath = Path.of(".");
+
+        if(fileName.equals(".")) {
+            try {
+                List<Path> files = Files.walk(repoPath).toList();
+
+                for(Path file: files) {
+                    if(!Files.isRegularFile(file)) continue;
+
+                    String relativeName = repoPath.relativize(file).toString();
+
+                    if(relativeName.startsWith(".versionhandle")) continue;
+
+                    addSingleFile(repoPath, relativeName);
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to fetch files", e);
+            }
+        } else {
+            addSingleFile(repoPath, fileName);
+        }
+    }
+
+    /**
+     * Checks conditions for file to be added then adds to objects if valid
+     * @param repoPath path of relevant repository
+     * @param fileName name of file requested to add
+     */
+    public void addSingleFile(Path repoPath, String fileName) {
+
         Path vhPath = repoPath.resolve(".versionhandle");
         Path filePath = repoPath.resolve(fileName);
 
@@ -46,12 +77,10 @@ public class AddService {
             new IndexService().stageFile(repoPath, fileName, hash);
 
             System.out.println("File staged: " + fileName);
-            System.out.println("Object hash: " + hash);
+            System.out.println("Object hash: " + hash + "\n");
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to add file: " + fileName, e);
         }
-
-
     }
 }
