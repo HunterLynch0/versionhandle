@@ -18,31 +18,31 @@ public class AddService {
         Path vhPath = repoPath.resolve(".versionhandle");
         Path filePath = repoPath.resolve(fileName);
 
-        // checks project is initialised
+        // Checks project is initialised
         if(!Files.exists(vhPath)) {
             System.out.println("Not a versionhandle repository. Initialise project first.");
             return;
         }
 
-        // checks file exists in relevant directory
+        // Checks file exists in relevant directory
         if(!Files.exists(filePath)) {
             System.out.println("File does not exist: " + fileName);
             return;
         }
 
-        // hash content then store to objects + stage
+        // Hash content then store to objects + stage
         try {
             byte[] content = Files.readAllBytes(filePath);
             String hash = HashUtil.sha256(content);
 
             Path objectPath = vhPath.resolve("objects").resolve(hash);
 
-            // store
+            // Store
             if(!Files.exists(objectPath)) {
                 Files.write(objectPath, content);
             }
 
-            // stage
+            // Stage
             new IndexService().stageFile(repoPath, fileName, hash);
 
             System.out.println("File staged: " + fileName);

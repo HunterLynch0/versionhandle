@@ -12,7 +12,7 @@ public class RepositoryService {
      */
     public void init(Path repoPath) {
 
-        // create versionhandle path
+        // Create versionhandle path
         Path vhPath = repoPath.resolve(".versionhandle");
 
         if(Files.exists(vhPath)) {
@@ -21,7 +21,7 @@ public class RepositoryService {
         }
 
         try {
-            // create versionhandle folders
+            // Create versionhandle folders
             Files.createDirectories(vhPath);
             Files.createDirectories(vhPath.resolve("objects"));
             Files.createDirectories(vhPath.resolve("commits"));
