@@ -57,6 +57,9 @@ public class CheckoutService {
             Path objectPath = vhPath.resolve("objects").resolve(objectHash);
 
             try {
+                if(filePath.getParent() != null) {
+                    Files.createDirectories(filePath.getParent());
+                }
                 Files.write(filePath, Files.readAllBytes(objectPath));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to read file: " + fileName, e);
@@ -65,5 +68,7 @@ public class CheckoutService {
 
         new IndexService().saveIndex(repoPath, new HashMap<String, String>());
         commitService.writeCurrent(repoPath, commitId);
+
+        System.out.println("Checked out commit: " + commitId);
     }
 }
