@@ -2,10 +2,13 @@ package com.lynch.versionhandle.service;
 
 import com.lynch.versionhandle.model.Commit;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.nio.file.Files.deleteIfExists;
@@ -74,6 +77,9 @@ public class CheckoutService {
 
                 // Check for untracked files
                 try {
+                    List<Path> unTrackedFiles = new ArrayList<>();
+                    boolean unTracked = false;
+
                     for (Path path : Files.walk(repoPath).toList()) {
                         if (!Files.isRegularFile(path)) {
                             continue;
@@ -86,10 +92,20 @@ public class CheckoutService {
                         }
 
                         if (!current.getSnapshot().containsKey(relativePath)) {
-                            System.out.println("Checkout aborted: you have untracked files, stage and commit." +
-                                    "\nOr run 'checkout <commitId> -f' to force checkout (Warning: you will lose all untracked files)");
-                            return;
+                            unTracked = true;
+                            unTrackedFiles.add(path);
                         }
+                    }
+
+                    if(unTracked) {
+                        System.out.println("Checkout aborted: Working directory contains untracked files:\n\nUntracked files.");
+                        for(Path path: unTrackedFiles) {
+                            System.out.println("   - " + repoPath.relativize(path));
+                        }
+                        System.out.println("\nFixes:"  +
+                                "\n   - Stage and commit files to save current working directory." +
+                                "\n   - Run 'checkout <commitId> -f' to force checkout (WARNING: you will lose all untracked files).");
+                        return;
                     }
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to loop through working directory.", e);
