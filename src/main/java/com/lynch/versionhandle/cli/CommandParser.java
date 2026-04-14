@@ -66,9 +66,9 @@ public class CommandParser {
                 }
                 CheckoutService checkoutService = new CheckoutService();
                 if((args[1]).equals("CURRENT")) {
-                    checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath));
+                    checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath), false);
                 } else {
-                    checkoutService.checkout(repoPath, args[1]);
+                    checkoutService.checkout(repoPath, args[1], false);
                 }
                 break;
 

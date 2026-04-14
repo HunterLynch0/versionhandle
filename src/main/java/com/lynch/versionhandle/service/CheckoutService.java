@@ -9,9 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.file.Files.deleteIfExists;
+
 public class CheckoutService {
 
-    public void checkout(Path repoPath, String commitId) {
+    /**
+     *
+     * @param repoPath
+     * @param commitId
+     * @param force
+     */
+    public void checkout(Path repoPath, String commitId, boolean force) {
 
         // Check project is initialised
         Path vhPath = repoPath.resolve(".versionhandle");
@@ -29,33 +37,75 @@ public class CheckoutService {
         }
 
         CommitService commitService = new CommitService();
+
         // Load target commit
         Commit target = commitService.loadCommit(repoPath, commitId);
 
-        // Remove all files in current snapshot that are not in target
-        try {
-            for(Path path: Files.walk(repoPath).toList()) {
+        if(force) {
+            // Remove all files in working directory that are not in target including untracked
+            try {
+                for (Path path : Files.walk(repoPath).toList()) {
+                    if (!Files.isRegularFile(path)) {
+                        continue;
+                    }
 
-                if(!Files.isRegularFile(path)){
-                    continue;
+                    String relativePath = repoPath.relativize(path).toString();
+
+                    if (relativePath.startsWith(".versionhandle")) {
+                        continue;
+                    }
+
+                    if (!target.getSnapshot().containsKey(relativePath)) {
+                        try {
+                            deleteIfExists(path);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to delete file: " + relativePath, e);
+                        }
+                    }
                 }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to loop through working directory.", e);
+            }
+        } else {
+            // Remove all files that are in CURRENT but not in target
+            Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
 
-                String relativePath = repoPath.relativize(path).toString();
+            // Check for tracked files
+            try {
+                for (Path path : Files.walk(repoPath).toList()) {
+                    if (!Files.isRegularFile(path)) {
+                        continue;
+                    }
 
-                if(relativePath.startsWith(".versionhandle")) {
-                    continue;
+                    String relativePath = repoPath.relativize(path).toString();
+
+                    if (relativePath.startsWith(".versionhandle")) {
+                        continue;
+                    }
+
+                    if(!current.getSnapshot().containsKey(path.toString())) {
+                        System.out.println("Checkout aborted: you have untracked files, stage and commit." +
+                                "\nrun 'checkout <commitId> -f' to force checkout (Warning: you will loose untracked files for good)");
+                        return;
+                    }
                 }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to loop through working directory.", e);
+            }
 
-                if(!target.getSnapshot().containsKey(relativePath)) {
+
+            for(Map.Entry<String, String> file: current.getSnapshot().entrySet()) {
+                String fileName = file.getKey();
+                Path filePath = vhPath.resolve(fileName);
+
+                if(!target.getSnapshot().containsKey(fileName)) {
                     try {
-                        Files.deleteIfExists(path);
-                    } catch(IOException e) {
-                        throw new RuntimeException("Failed to delete file: " + relativePath, e);
+                        Files.deleteIfExists(filePath);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to delete file: " + fileName, e);
                     }
                 }
             }
-        } catch(IOException e) {
-            throw new RuntimeException("Failed to loop through working directory.", e);
         }
 
         // Restore all remaining files to target snapshot state
