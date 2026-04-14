@@ -36,18 +36,15 @@ public class CommitService {
             return;
         }
 
-        // Get commit data then build commit content
+        // Get commit data
         String parentId = readCurrent(repoPath);
         String timestamp = LocalDateTime.now().toString();
-
         Map<String, String> snapshot;
-
         if(parentId == null) {
             snapshot = new HashMap<>();
         } else {
             snapshot = new HashMap<>(loadCommit(repoPath, parentId).getSnapshot());
         }
-
         snapshot.putAll(index);
 
         // Create the content first to get the id for the actual commit, then create the commit with the created hash
