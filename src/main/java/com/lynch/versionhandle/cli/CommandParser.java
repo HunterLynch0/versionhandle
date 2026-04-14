@@ -63,12 +63,22 @@ public class CommandParser {
             case "checkout":
                 if(args.length < 2) {
                     System.out.println("Please provide commit id.");
+                    return;
                 }
+
                 CheckoutService checkoutService = new CheckoutService();
-                if((args[1]).equals("CURRENT")) {
-                    checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath), false);
-                } else {
-                    checkoutService.checkout(repoPath, args[1], false);
+                if(args.length < 3) {
+                    if ((args[1]).equals("CURRENT")) {
+                        checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath), false);
+                    } else {
+                        checkoutService.checkout(repoPath, args[1], false);
+                    }
+                } else if(args[2].equals("-f")) {
+                    if ((args[1]).equals("CURRENT")) {
+                        checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath), true);
+                    } else {
+                        checkoutService.checkout(repoPath, args[1], true);
+                    }
                 }
                 break;
 

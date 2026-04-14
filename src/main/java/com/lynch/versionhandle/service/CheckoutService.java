@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static java.nio.file.Files.deleteIfExists;
@@ -35,6 +34,7 @@ public class CheckoutService {
             System.out.println("Commit not found. Run 'log -a' to list all commit ids.");
             return;
         }
+
 
         CommitService commitService = new CommitService();
 
@@ -67,10 +67,9 @@ public class CheckoutService {
                 throw new RuntimeException("Failed to loop through working directory.", e);
             }
         } else {
-            // Remove all files that are in CURRENT but not in target
             Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
 
-            // Check for tracked files
+            // Check for untracked files
             try {
                 for (Path path : Files.walk(repoPath).toList()) {
                     if (!Files.isRegularFile(path)) {
@@ -83,9 +82,9 @@ public class CheckoutService {
                         continue;
                     }
 
-                    if(!current.getSnapshot().containsKey(path.toString())) {
+                    if(!current.getSnapshot().containsKey(relativePath)) {
                         System.out.println("Checkout aborted: you have untracked files, stage and commit." +
-                                "\nrun 'checkout <commitId> -f' to force checkout (Warning: you will loose untracked files for good)");
+                                "\n'checkout <commitId> -f' to force checkout (Warning: you will loose untracked files for good)");
                         return;
                     }
                 }
@@ -93,10 +92,10 @@ public class CheckoutService {
                 throw new RuntimeException("Failed to loop through working directory.", e);
             }
 
-
+            // Remove all files that are in CURRENT but not in target
             for(Map.Entry<String, String> file: current.getSnapshot().entrySet()) {
                 String fileName = file.getKey();
-                Path filePath = vhPath.resolve(fileName);
+                Path filePath = repoPath.resolve(fileName);
 
                 if(!target.getSnapshot().containsKey(fileName)) {
                     try {
