@@ -37,18 +37,28 @@ public class CommitService {
         }
 
         String parentId = readCurrent(repoPath);
-
         String timestamp = LocalDateTime.now().toString();
 
-        // Build commit file
+        Map<String, String> snapshot;
+
+        if(parentId == null) {
+            snapshot = new HashMap<>();
+        } else {
+            snapshot = loadCommit(repoPath, parentId).getSnapshot();
+        }
+
+        snapshot.putAll(index);
+
         StringBuilder commitContent = new StringBuilder();
+
         commitContent.append("Message: ").append(message).append("\n");
         commitContent.append("Timestamp: ").append(timestamp).append("\n");
-        commitContent.append("Parent: ").append(parentId).append("\n\n");
+        commitContent.append("Parent ID: ").append(parentId).append("\n\n");
 
-        for(Map.Entry<String, String> entry: index.entrySet()) {
+        for(Map.Entry<String, String> entry: snapshot.entrySet()) {
             commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
         }
+
 
         // Hash content and commit snapshot
         try {
@@ -60,6 +70,7 @@ public class CommitService {
             Files.write(commitPath, content);
 
             new IndexService().saveIndex(repoPath, new HashMap<String, String>());
+            writeCurrent(repoPath, hash);
 
             System.out.println("Snapshot committed: " + message);
             System.out.println("Commit hash: " + hash);
@@ -114,13 +125,13 @@ public class CommitService {
 
         String message;
         String timestamp;
-        String parent;
+        String parentId;
         Map<String, String> snapshot = new HashMap<>();
 
         try (Scanner fileScan = new Scanner(commitPath.toFile())) {
             message = fileScan.nextLine().replaceFirst("Message: ", "");
-            timestamp = fileScan.nextLine().replaceFirst("TimeStamp: ", "");
-            parent = fileScan.nextLine().replaceFirst("Parent: ", "");
+            timestamp = fileScan.nextLine().replaceFirst("Timestamp: ", "");
+            parentId = fileScan.nextLine().replaceFirst("Parent ID: ", "");
             fileScan.nextLine();
 
             while(fileScan.hasNextLine()) {
@@ -131,7 +142,7 @@ public class CommitService {
             throw new RuntimeException("Failed to load Commit", e);
         }
 
-        return new Commit(commitId, message, timestamp, parent, snapshot);
+        return new Commit(commitId, message, timestamp, parentId, snapshot);
     }
 
     public void saveCommit(Path repoPath, Commit commit) {
@@ -141,7 +152,7 @@ public class CommitService {
 
         commitContent.append("Message: ").append(commit.getMessage()).append("\n");
         commitContent.append("Timestamp: ").append(commit.getTimestamp()).append("\n");
-        commitContent.append("Parent: ").append(commit.getParentId()).append("\n\n");
+        commitContent.append("Parent ID: ").append(commit.getParentId()).append("\n\n");
 
         for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
             commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
