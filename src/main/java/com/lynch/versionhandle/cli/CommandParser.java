@@ -1,9 +1,6 @@
 package com.lynch.versionhandle.cli;
 
-import com.lynch.versionhandle.service.AddService;
-import com.lynch.versionhandle.service.CommitService;
-import com.lynch.versionhandle.service.LogService;
-import com.lynch.versionhandle.service.RepositoryService;
+import com.lynch.versionhandle.service.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,10 +59,11 @@ public class CommandParser {
                 if(args.length < 2) {
                     System.out.println("Please provide commit id.");
                 }
+                CheckoutService checkoutService = new CheckoutService();
                 if((args[1]).equals("CURRENT")) {
-
+                    checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath));
                 } else {
-
+                    checkoutService.checkout(repoPath, args[1]);
                 }
                 break;
 
