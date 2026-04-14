@@ -36,6 +36,7 @@ public class CommitService {
             return;
         }
 
+        // Get commit data then build commit content
         String parentId = readCurrent(repoPath);
         String timestamp = LocalDateTime.now().toString();
 
@@ -44,7 +45,7 @@ public class CommitService {
         if(parentId == null) {
             snapshot = new HashMap<>();
         } else {
-            snapshot = loadCommit(repoPath, parentId).getSnapshot();
+            snapshot = new HashMap<>(loadCommit(repoPath, parentId).getSnapshot());
         }
 
         snapshot.putAll(index);
