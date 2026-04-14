@@ -50,35 +50,20 @@ public class CommitService {
 
         snapshot.putAll(index);
 
-        StringBuilder commitContent = new StringBuilder();
+        // Create the content first to get the id for the actual commit, then create the commit with the created hash
+        String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, snapshot));
+        String hash = HashUtil.sha256(commitContent.getBytes());
+        Commit commit = new Commit(hash, message, timestamp, parentId, snapshot);
 
-        commitContent.append("Message: ").append(message).append("\n");
-        commitContent.append("Timestamp: ").append(timestamp).append("\n");
-        commitContent.append("Parent ID: ").append(parentId).append("\n\n");
+        // Finalise the commit
+        saveCommit(repoPath, commit);
 
-        for(Map.Entry<String, String> entry: snapshot.entrySet()) {
-            commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
-        }
+        new IndexService().saveIndex(repoPath, new HashMap<String, String>());
+        writeCurrent(repoPath, hash);
 
+        System.out.println("Snapshot committed: " + message);
+        System.out.println("Commit hash: " + hash);
 
-        // Hash content and commit snapshot
-        try {
-            byte[] content = commitContent.toString().getBytes();
-            String hash = HashUtil.sha256(content);
-
-            Path commitPath = vhPath.resolve("commits").resolve(hash);
-
-            Files.write(commitPath, content);
-
-            new IndexService().saveIndex(repoPath, new HashMap<String, String>());
-            writeCurrent(repoPath, hash);
-
-            System.out.println("Snapshot committed: " + message);
-            System.out.println("Commit hash: " + hash);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to commit snapshot: " + message, e);
-        }
     }
 
     /**
@@ -114,13 +99,23 @@ public class CommitService {
     }
 
     /**
-     * Builds commit content and saves commit to commits
+     * Saves commit content to commits folder
      * @param repoPath project root repo
      * @param commit given commit
      */
     public void saveCommit(Path repoPath, Commit commit) {
         Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commit.getId());
 
+        String commitContent = buildCommitContent(commit);
+
+        try {
+            Files.write(commitPath, commitContent.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save commit.", e);
+        }
+    }
+
+    public String buildCommitContent(Commit commit) {
         StringBuilder commitContent = new StringBuilder();
 
         commitContent.append("Message: ").append(commit.getMessage()).append("\n");
@@ -130,13 +125,9 @@ public class CommitService {
         for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
             commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
         }
-
-        try {
-            Files.write(commitPath, commitContent.toString().getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save commit.", e);
-        }
+        return commitContent.toString();
     }
+
 
     /**
      * Reads CURRENT commit id

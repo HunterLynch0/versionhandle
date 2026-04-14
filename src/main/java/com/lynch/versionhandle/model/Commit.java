@@ -37,4 +37,8 @@ public class Commit {
     public Map<String, String> getSnapshot() {
         return snapshot;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }
