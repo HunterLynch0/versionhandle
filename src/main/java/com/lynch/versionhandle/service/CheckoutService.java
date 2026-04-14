@@ -23,7 +23,7 @@ public class CheckoutService {
         // Check that the given id matches a commit
         Path commitPath = vhPath.resolve("commits").resolve(commitId);
         if(!Files.exists(commitPath)) {
-            System.out.println("Commit not found.");
+            System.out.println("Commit not found. Run 'log -a' to list all commit ids.");
             return;
         }
 

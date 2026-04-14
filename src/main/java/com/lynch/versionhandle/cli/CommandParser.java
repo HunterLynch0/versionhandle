@@ -52,7 +52,12 @@ public class CommandParser {
                 break;
 
             case "log":
-                new LogService().log(repoPath);
+                LogService logService = new LogService();
+                if(args.length > 1 && args[1].equals("-a")) {
+                    logService.logAll(repoPath);
+                } else {
+                    logService.log(repoPath);
+                }
                 break;
 
             case "checkout":
