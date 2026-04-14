@@ -32,6 +32,11 @@ public class LogService {
             return;
         }
 
+        // Warn that commits are only listed from CURRENT
+        System.out.println("Note:" +
+                "\n   - Commits are listed descending from current." +
+                "\n   - To log all commits run 'log -a'\n");
+
         // Print commit chain starting from CURRENT
         while(commitId != null) {
             Commit commit = new CommitService().loadCommit(repoPath, commitId);
