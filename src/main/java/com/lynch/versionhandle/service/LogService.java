@@ -1,5 +1,7 @@
 package com.lynch.versionhandle.service;
 
+import com.lynch.versionhandle.model.Commit;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,32 +26,27 @@ public class LogService {
             return;
         }
 
-        try {
-            // Get list of files in .versionhandle/commits
-            List<Path> commits = Files.list(commitsPath).toList();
 
-            if(commits.isEmpty()) {
-                System.out.println("No commits.");
-                return;
-            }
+        // Read CURRENT
+        String commitId = new CommitService().readCurrent(repoPath);
 
-            // Prints details of commits
-            for(Path commit: commits) {
-                Scanner fileScan = new Scanner(commit.toFile());
-                System.out.println("commit " + commit.getFileName());
-
-                int count = 0;
-                while(fileScan.hasNextLine() && count < 2) {
-                    System.out.println(fileScan.nextLine());
-                    count++;
-                }
-
-                System.out.println();
-                fileScan.close();
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to fetch commits", e);
+        if(commitId == null) {
+            System.out.println("No commits.");
+            return;
         }
+
+        // Print commit chain starting from CURRENT
+        while(commitId != null) {
+            Commit commit = new CommitService().loadCommit(repoPath, commitId);
+
+            System.out.println("commit " + commit.getId());
+            System.out.println("Message: " + commit.getMessage());
+            System.out.println("Timestamp: " + commit.getTimestamp());
+            System.out.println("Parent ID: " + commit.getParentId());
+            System.out.println();
+
+            commitId = commit.getParentId();
+        }
+
     }
 }

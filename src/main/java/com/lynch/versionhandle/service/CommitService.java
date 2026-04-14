@@ -82,6 +82,63 @@ public class CommitService {
     }
 
     /**
+     * Creates and returns a new commit object by fetching data using given commitId
+     * @param repoPath project root repo
+     * @param commitId commitId of the commit we want to load
+     * @return commit linked to commitId
+     */
+    public Commit loadCommit(Path repoPath, String commitId) {
+        Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commitId);
+
+        String message;
+        String timestamp;
+        String parentId;
+        Map<String, String> snapshot = new HashMap<>();
+
+        try (Scanner fileScan = new Scanner(commitPath.toFile())) {
+            message = fileScan.nextLine().replaceFirst("Message: ", "");
+            timestamp = fileScan.nextLine().replaceFirst("Timestamp: ", "");
+            parentId = fileScan.nextLine().replaceFirst("Parent ID: ", "");
+            if(parentId.equals("null")) parentId = null;
+            fileScan.nextLine();
+
+            while(fileScan.hasNextLine()) {
+                String[] parts = fileScan.nextLine().split(" ");
+                snapshot.put(parts[0], parts[1]);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load Commit", e);
+        }
+
+        return new Commit(commitId, message, timestamp, parentId, snapshot);
+    }
+
+    /**
+     * Builds commit content and saves commit to commits
+     * @param repoPath project root repo
+     * @param commit given commit
+     */
+    public void saveCommit(Path repoPath, Commit commit) {
+        Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commit.getId());
+
+        StringBuilder commitContent = new StringBuilder();
+
+        commitContent.append("Message: ").append(commit.getMessage()).append("\n");
+        commitContent.append("Timestamp: ").append(commit.getTimestamp()).append("\n");
+        commitContent.append("Parent ID: ").append(commit.getParentId()).append("\n\n");
+
+        for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
+            commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
+        }
+
+        try {
+            Files.write(commitPath, commitContent.toString().getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save commit.", e);
+        }
+    }
+
+    /**
      * Reads CURRENT commit id
      * @param repoPath project root repository
      * @return id of CURRENT or null if first commit
@@ -118,51 +175,6 @@ public class CommitService {
             Files.writeString(currentPath, hash);
         } catch (IOException e) {
             throw new RuntimeException("Failed to update CURRENT", e);
-        }
-    }
-
-    public Commit loadCommit(Path repoPath, String commitId) {
-        Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commitId);
-
-        String message;
-        String timestamp;
-        String parentId;
-        Map<String, String> snapshot = new HashMap<>();
-
-        try (Scanner fileScan = new Scanner(commitPath.toFile())) {
-            message = fileScan.nextLine().replaceFirst("Message: ", "");
-            timestamp = fileScan.nextLine().replaceFirst("Timestamp: ", "");
-            parentId = fileScan.nextLine().replaceFirst("Parent ID: ", "");
-            fileScan.nextLine();
-
-            while(fileScan.hasNextLine()) {
-                String[] parts = fileScan.nextLine().split(" ");
-                snapshot.put(parts[0], parts[1]);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load Commit", e);
-        }
-
-        return new Commit(commitId, message, timestamp, parentId, snapshot);
-    }
-
-    public void saveCommit(Path repoPath, Commit commit) {
-        Path commitPath = repoPath.resolve(".versionhandle").resolve("commits").resolve(commit.getId());
-
-        StringBuilder commitContent = new StringBuilder();
-
-        commitContent.append("Message: ").append(commit.getMessage()).append("\n");
-        commitContent.append("Timestamp: ").append(commit.getTimestamp()).append("\n");
-        commitContent.append("Parent ID: ").append(commit.getParentId()).append("\n\n");
-
-        for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
-            commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
-        }
-
-        try {
-            Files.write(commitPath, commitContent.toString().getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save commit.", e);
         }
     }
 }
