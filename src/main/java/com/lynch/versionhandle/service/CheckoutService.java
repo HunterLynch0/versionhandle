@@ -98,7 +98,7 @@ public class CheckoutService {
                     }
 
                     if(unTracked) {
-                        System.out.println("Checkout aborted: Working directory contains untracked files:\n\nUntracked files.");
+                        System.out.println("Checkout aborted: Working directory contains untracked files.\n\nUntracked files:");
                         for(Path path: unTrackedFiles) {
                             System.out.println("   - " + repoPath.relativize(path));
                         }
