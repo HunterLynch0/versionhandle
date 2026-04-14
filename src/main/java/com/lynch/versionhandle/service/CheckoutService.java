@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CheckoutService {
@@ -27,25 +28,34 @@ public class CheckoutService {
             return;
         }
 
-        // Load target commit and latest commit
         CommitService commitService = new CommitService();
-
+        // Load target commit
         Commit target = commitService.loadCommit(repoPath, commitId);
-        Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
-
 
         // Remove all files in current snapshot that are not in target
-        for(Map.Entry<String, String> file: current.getSnapshot().entrySet()) {
-            String fileName = file.getKey();
-            Path filePath = repoPath.resolve(fileName);
+        try {
+            for(Path path: Files.walk(repoPath).toList()) {
 
-            if(!target.getSnapshot().containsKey(fileName)) {
-                try {
-                    Files.deleteIfExists(filePath);
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to delete file: " + fileName, e);
+                if(!Files.isRegularFile(path)){
+                    continue;
+                }
+
+                String relativePath = repoPath.relativize(path).toString();
+
+                if(relativePath.startsWith(".versionhandle")) {
+                    continue;
+                }
+
+                if(!target.getSnapshot().containsKey(relativePath)) {
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch(IOException e) {
+                        throw new RuntimeException("Failed to delete file: " + relativePath, e);
+                    }
                 }
             }
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to loop through working directory.", e);
         }
 
         // Restore all remaining files to target snapshot state
