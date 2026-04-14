@@ -42,7 +42,7 @@ public class LogService {
             System.out.println("commit " + commit.getId());
             System.out.println("Message: " + commit.getMessage());
             System.out.println("Timestamp: " + commit.getTimestamp());
-            System.out.println("Parent ID: " + commit.getParentId());
+            System.out.println("Parent: " + commit.getParentId());
             System.out.println();
 
             commitId = commit.getParentId();

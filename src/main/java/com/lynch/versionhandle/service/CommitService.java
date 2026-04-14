@@ -83,7 +83,7 @@ public class CommitService {
         try (Scanner fileScan = new Scanner(commitPath.toFile())) {
             message = fileScan.nextLine().replaceFirst("Message: ", "");
             timestamp = fileScan.nextLine().replaceFirst("Timestamp: ", "");
-            parentId = fileScan.nextLine().replaceFirst("Parent ID: ", "");
+            parentId = fileScan.nextLine().replaceFirst("Parent: ", "");
             if(parentId.equals("null")) parentId = null;
             fileScan.nextLine();
 
@@ -120,7 +120,7 @@ public class CommitService {
 
         commitContent.append("Message: ").append(commit.getMessage()).append("\n");
         commitContent.append("Timestamp: ").append(commit.getTimestamp()).append("\n");
-        commitContent.append("Parent ID: ").append(commit.getParentId()).append("\n\n");
+        commitContent.append("Parent: ").append(commit.getParentId()).append("\n\n");
 
         for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
             commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
