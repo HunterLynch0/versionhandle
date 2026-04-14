@@ -44,18 +44,18 @@ public class CheckoutService {
         if(force) {
             // Remove all files in working directory that are not in target including untracked
             try {
-                for (Path path : Files.walk(repoPath).toList()) {
-                    if (!Files.isRegularFile(path)) {
+                for(Path path : Files.walk(repoPath).toList()) {
+                    if(!Files.isRegularFile(path)) {
                         continue;
                     }
 
                     String relativePath = repoPath.relativize(path).toString();
 
-                    if (relativePath.startsWith(".versionhandle")) {
+                    if(relativePath.startsWith(".versionhandle")) {
                         continue;
                     }
 
-                    if (!target.getSnapshot().containsKey(relativePath)) {
+                    if(!target.getSnapshot().containsKey(relativePath)) {
                         try {
                             deleteIfExists(path);
                         } catch (IOException e) {
@@ -63,49 +63,54 @@ public class CheckoutService {
                         }
                     }
                 }
-            } catch (IOException e) {
+            } catch(IOException e) {
                 throw new RuntimeException("Failed to loop through working directory.", e);
             }
         } else {
-            Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
+            String currentId = commitService.readCurrent(repoPath);
 
-            // Check for untracked files
-            try {
-                for (Path path : Files.walk(repoPath).toList()) {
-                    if (!Files.isRegularFile(path)) {
-                        continue;
+            if(currentId != null) {
+                Commit current = commitService.loadCommit(repoPath, currentId);
+
+                // Check for untracked files
+                try {
+                    for (Path path : Files.walk(repoPath).toList()) {
+                        if (!Files.isRegularFile(path)) {
+                            continue;
+                        }
+
+                        String relativePath = repoPath.relativize(path).toString();
+
+                        if (relativePath.startsWith(".versionhandle")) {
+                            continue;
+                        }
+
+                        if (!current.getSnapshot().containsKey(relativePath)) {
+                            System.out.println("Checkout aborted: you have untracked files, stage and commit." +
+                                    "\nOr run 'checkout <commitId> -f' to force checkout (Warning: you will lose all untracked files)");
+                            return;
+                        }
                     }
-
-                    String relativePath = repoPath.relativize(path).toString();
-
-                    if (relativePath.startsWith(".versionhandle")) {
-                        continue;
-                    }
-
-                    if(!current.getSnapshot().containsKey(relativePath)) {
-                        System.out.println("Checkout aborted: you have untracked files, stage and commit." +
-                                "\n'checkout <commitId> -f' to force checkout (Warning: you will loose untracked files for good)");
-                        return;
-                    }
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to loop through working directory.", e);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to loop through working directory.", e);
-            }
 
-            // Remove all files that are in CURRENT but not in target
-            for(Map.Entry<String, String> file: current.getSnapshot().entrySet()) {
-                String fileName = file.getKey();
-                Path filePath = repoPath.resolve(fileName);
+                // Remove all files that are in CURRENT but not in target
+                for (Map.Entry<String, String> file : current.getSnapshot().entrySet()) {
+                    String fileName = file.getKey();
+                    Path filePath = repoPath.resolve(fileName);
 
-                if(!target.getSnapshot().containsKey(fileName)) {
-                    try {
-                        Files.deleteIfExists(filePath);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to delete file: " + fileName, e);
+                    if (!target.getSnapshot().containsKey(fileName)) {
+                        try {
+                            Files.deleteIfExists(filePath);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to delete file: " + fileName, e);
+                        }
                     }
                 }
             }
         }
+
 
         // Restore all remaining files to target snapshot state
         for(Map.Entry<String, String> file: target.getSnapshot().entrySet()) {
