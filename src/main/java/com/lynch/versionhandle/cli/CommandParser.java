@@ -5,6 +5,7 @@ import com.lynch.versionhandle.service.CommitService;
 import com.lynch.versionhandle.service.LogService;
 import com.lynch.versionhandle.service.RepositoryService;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CommandParser {
@@ -21,11 +22,13 @@ public class CommandParser {
             return;
         }
 
+        Path repoPath = Path.of(".");
+
         String command = args[0];
 
         switch(command) {
             case "init":
-                new RepositoryService().init(Path.of("."));
+                new RepositoryService().init(repoPath);
                 break;
 
             case "add":
@@ -35,7 +38,7 @@ public class CommandParser {
                 }
                 for(int i = 1; i < args.length; i++) {
                     String fileName = args[i];
-                    new AddService().add(fileName);
+                    new AddService().add(repoPath, fileName);
                 }
                 break;
 
@@ -48,14 +51,22 @@ public class CommandParser {
                 for(int i = 1; i < args.length; i++) {
                     message.append(args[i]).append(" ");
                 }
-                new CommitService().commit(message.toString().trim());
+                new CommitService().commit(repoPath, message.toString().trim());
                 break;
 
             case "log":
-                new LogService().log();
+                new LogService().log(repoPath);
                 break;
 
-            case "branch":
+            case "checkout":
+                if(args.length < 2) {
+                    System.out.println("Please provide commit id.");
+                }
+                if((args[1]).equals("CURRENT")) {
+
+                } else {
+
+                }
                 break;
 
             default:

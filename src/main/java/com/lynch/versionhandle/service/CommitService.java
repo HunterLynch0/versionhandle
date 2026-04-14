@@ -17,9 +17,8 @@ public class CommitService {
      * Checks conditions for a snapshot to be commited then commits if valid
      * @param message user provided message describing their commit
      */
-    public void commit(String message) {
+    public void commit(Path repoPath, String message) {
 
-        Path repoPath = Path.of(".");
         Path vhPath = repoPath.resolve(".versionhandle");
 
         // Check project is initialised

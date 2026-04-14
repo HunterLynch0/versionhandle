@@ -14,9 +14,8 @@ public class LogService {
     /**
      * Prints commit history with details of timestamp and message
      */
-    public void log() {
+    public void log(Path repoPath) {
 
-        Path repoPath = Path.of(".");
         Path vhPath = repoPath.resolve(".versionhandle");
         Path commitsPath = vhPath.resolve("commits");
 

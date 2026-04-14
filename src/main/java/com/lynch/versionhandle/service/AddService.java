@@ -13,9 +13,7 @@ public class AddService {
      * Adds a file or all files in the repository to staging area
      * @param fileName name of file, or "." to add all
      */
-    public void add(String fileName) {
-
-        Path repoPath = Path.of(".");
+    public void add(Path repoPath, String fileName) {
 
         // Either add recursively or adds a single file
         if(fileName.equals(".")) {
