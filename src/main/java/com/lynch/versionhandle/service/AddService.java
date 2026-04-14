@@ -57,7 +57,7 @@ public class AddService {
         }
 
         // Checks file exists in relevant directory and is a file not a directory
-        if(!Files.exists(filePath) || Files.isRegularFile(filePath)) {
+        if(!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
             System.out.println("File does not exist: " + fileName);
             return;
         }
