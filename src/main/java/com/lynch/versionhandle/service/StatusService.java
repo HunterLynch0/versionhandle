@@ -23,48 +23,32 @@ public class StatusService {
             return;
         }
 
+
+        CommitService commitService = new CommitService();
+        IndexService indexService = new IndexService();
+
+        Map<String, String> index = indexService.loadIndex(repoPath);
+        Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
+
         List<File> staged = new ArrayList<>();
         List<File> modified = new ArrayList<>();
         List<File> untracked = new ArrayList<>();
 
-        Map<String, String> index = new IndexService().loadIndex(repoPath);
-
-        // Collect staged files
-        for(Map.Entry<String, String> entry: index.entrySet()) {
-            String fileName = entry.getKey();
-            Path filePath = repoPath.resolve(fileName);
-
-            staged.add(filePath.toFile());
-        }
-
-        // Collect untracked files
         try {
-            CommitService commitService = new CommitService();
-            Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
-
             for(Path path : Files.walk(repoPath).toList()) {
-                if(!Files.isRegularFile(path)) {
-                    continue;
-                }
 
-                Path relativePath = repoPath.relativize(path);
-                if(relativePath.startsWith(".versionhandle")) {
-                    continue;
-                }
-
-                if(!current.getSnapshot().containsKey(relativePath.toString())) {
-                    untracked.add(path.toFile());
-                }
             }
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to scan working directory", e);
         }
 
-//        for(File file: staged) {
-//            System.out.println(file.toString());
-//        }
+        System.out.println();
+        for(File file: staged) {
+            System.out.println(file.toString());
+        }
 
+        System.out.println();
         for(File file: untracked) {
             System.out.println(file);
         }
