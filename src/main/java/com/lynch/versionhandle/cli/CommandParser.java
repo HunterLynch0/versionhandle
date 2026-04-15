@@ -25,9 +25,19 @@ public class CommandParser {
 
         switch(command) {
             case "help":
+                if(args.length != 1) {
+                    System.out.print("Error: unknown additional arguments." +
+                            "\nUsage: help");
+                    return;
+                }
                 printHelp();
                 break;
             case "init":
+                if(args.length != 1) {
+                    System.out.print("Error: unknown additional arguments." +
+                            "\nTip: run help to list valid command usage.");
+                    return;
+                }
                 new RepositoryService().init(repoPath);
                 break;
 
@@ -97,6 +107,11 @@ public class CommandParser {
                 }
                 break;
             case "status":
+                if(args.length != 1) {
+                    System.out.print("Error: unknown additional arguments." +
+                            "\nTip: run help to list valid command usage.");
+                    return;
+                }
                 new StatusService().status(repoPath);
                 break;
 
