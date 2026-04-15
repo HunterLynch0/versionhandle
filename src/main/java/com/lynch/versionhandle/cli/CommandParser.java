@@ -25,14 +25,7 @@ public class CommandParser {
 
         switch(command) {
             case "help":
-                System.out.println("Versionhandle commands:");
-                System.out.println("   init");
-                System.out.println("   add <filename> [more files] || add .");
-                System.out.println("   commit <message>");
-                System.out.println("   log [-a]");
-                System.out.println("   status");
-                System.out.println("   checkout <commitId> [-f] || checkout CURRENT [-f]");
-                System.out.println("   help");
+                printHelp();
                 break;
             case "init":
                 new RepositoryService().init(repoPath);
@@ -40,7 +33,8 @@ public class CommandParser {
 
             case "add":
                 if(args.length < 2) {
-                    System.out.println("Nothing added, please specify files.");
+                    System.out.println("Error: no filename provided." +
+                            "\nTip: run help to list valid command usage.");
                     return;
                 }
                 for(int i = 1; i < args.length; i++) {
@@ -51,7 +45,8 @@ public class CommandParser {
 
             case "commit":
                 if(args.length < 2) {
-                    System.out.println("Error, please provide commit message");
+                    System.out.println("Error: no commit message." +
+                            "\nTip: run help to list valid command usage.");
                     return;
                 }
                 StringBuilder message = new StringBuilder();
@@ -63,10 +58,13 @@ public class CommandParser {
 
             case "log":
                 LogService logService = new LogService();
-                if(args.length > 1 && args[1].equals("-a")) {
+                if(args.length == 2 && args[1].equals("-a")) {
                     logService.logAll(repoPath);
-                } else {
+                } else if (args.length == 1){
                     logService.log(repoPath);
+                } else {
+                    System.out.println("Error: unknown additional arguments." +
+                            "\nTip: run help to list valid command usage.");
                 }
                 break;
 
@@ -98,7 +96,18 @@ public class CommandParser {
 
             default:
                 System.out.println("Invalid command: " + command +
-                        "\nTip: run 'help' to view list of valid commands");
+                        "\nTip: run 'help' list valid command usage.");
         }
+    }
+
+    public void printHelp() {
+        System.out.println("Versionhandle commands:");
+        System.out.println("   init");
+        System.out.println("   add <filename> [more files] || add .");
+        System.out.println("   commit <message>");
+        System.out.println("   log [-a]");
+        System.out.println("   status");
+        System.out.println("   checkout <commitId> [-f] || checkout CURRENT [-f]");
+        System.out.println("   help");
     }
 }
