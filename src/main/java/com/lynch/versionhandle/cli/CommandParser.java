@@ -82,6 +82,10 @@ public class CommandParser {
                 }
                 break;
 
+            case "status":
+                new StatusService().status(repoPath);
+                break;
+
             default:
                 System.out.println("Invalid command: " + command);
         }
