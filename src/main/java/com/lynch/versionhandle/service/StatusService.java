@@ -37,5 +37,36 @@ public class StatusService {
             staged.add(filePath.toFile());
         }
 
+        // Collect untracked files
+        try {
+            CommitService commitService = new CommitService();
+            Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
+
+            for(Path path : Files.walk(repoPath).toList()) {
+                if(!Files.isRegularFile(path)) {
+                    continue;
+                }
+
+                Path relativePath = repoPath.relativize(path);
+                if(relativePath.startsWith(".versionhandle")) {
+                    continue;
+                }
+
+                if(!current.getSnapshot().containsKey(relativePath.toString())) {
+                    untracked.add(path.toFile());
+                }
+            }
+
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to scan working directory", e);
+        }
+
+//        for(File file: staged) {
+//            System.out.println(file.toString());
+//        }
+
+        for(File file: untracked) {
+            System.out.println(file);
+        }
     }
 }

@@ -53,7 +53,6 @@ public class CheckoutService {
                     }
 
                     String relativePath = repoPath.relativize(path).toString();
-
                     if(relativePath.startsWith(".versionhandle")) {
                         continue;
                     }
