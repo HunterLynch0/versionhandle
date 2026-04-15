@@ -24,6 +24,16 @@ public class CommandParser {
         String command = args[0];
 
         switch(command) {
+            case "help":
+                System.out.println("Versionhandle commands:");
+                System.out.println("   init");
+                System.out.println("   add <filename> [more files] || add .");
+                System.out.println("   commit <message>");
+                System.out.println("   log [-a]");
+                System.out.println("   status");
+                System.out.println("   checkout <commitId> [-f] || checkout CURRENT [-f]");
+                System.out.println("   help");
+                break;
             case "init":
                 new RepositoryService().init(repoPath);
                 break;
@@ -87,7 +97,8 @@ public class CommandParser {
                 break;
 
             default:
-                System.out.println("Invalid command: " + command);
+                System.out.println("Invalid command: " + command +
+                        "\nTip: run 'help' to view list of valid commands");
         }
     }
 }
