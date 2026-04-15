@@ -1,6 +1,7 @@
 package com.lynch.versionhandle.service;
 
 import com.lynch.versionhandle.model.Commit;
+import com.lynch.versionhandle.util.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,34 +24,80 @@ public class StatusService {
             return;
         }
 
-
         CommitService commitService = new CommitService();
         IndexService indexService = new IndexService();
 
         Map<String, String> index = indexService.loadIndex(repoPath);
         Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
 
-        List<File> staged = new ArrayList<>();
-        List<File> modified = new ArrayList<>();
-        List<File> untracked = new ArrayList<>();
+        List<String> staged = new ArrayList<>();
+        List<String> modified = new ArrayList<>();
+        List<String> untracked = new ArrayList<>();
 
         try {
             for(Path path : Files.walk(repoPath).toList()) {
+                if(!Files.isRegularFile(path)) {
+                    continue;
+                }
 
+                String relativePath = repoPath.relativize(path).toString();
+
+                if(relativePath.startsWith(".versionhandle")) {
+                    continue;
+                }
+
+                String hash = HashUtil.sha256(Files.readAllBytes(path));
+
+                // Add to staged - in index but different file content than current file content
+                if(index.containsKey(relativePath) && !index.get(relativePath).equals(current.getSnapshot().get(relativePath))) {
+                    staged.add(relativePath);
+                }
+
+                // Add to modified - in index but working directory file content is different from index file content
+                if(index.containsKey(relativePath) && !hash.equals(index.get(relativePath))) {
+                    modified.add(relativePath);
+                }
+
+                // Add to untracked - not in index or current
+                if(!index.containsKey(relativePath) && !current.getSnapshot().containsKey(relativePath)) {
+                    untracked.add(relativePath);
+                }
             }
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to scan working directory", e);
         }
 
-        System.out.println();
-        for(File file: staged) {
-            System.out.println(file.toString());
+        System.out.println("Staged changes:");
+        if(staged.isEmpty()) {
+            System.out.println("     <empty>");
+        } else {
+            for(String file: staged) {
+                System.out.println("   - " + file.toString());
+            }
         }
 
         System.out.println();
-        for(File file: untracked) {
-            System.out.println(file);
+
+        System.out.println("Changes not staged:");
+        if(modified.isEmpty()) {
+            System.out.println("     <empty>");
+        } else {
+            for(String file: modified) {
+                System.out.println("   - " + file);
+            }
         }
+
+        System.out.println();
+
+        System.out.println("Untracked files");
+        if(untracked.isEmpty()) {
+            System.out.println("     <empty>");
+        } else {
+            for(String file: untracked) {
+                System.out.println("   - " + file);
+            }
+        }
+        System.out.println();
     }
 }
