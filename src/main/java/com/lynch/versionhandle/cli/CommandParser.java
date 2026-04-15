@@ -69,27 +69,33 @@ public class CommandParser {
                 break;
 
             case "checkout":
-                if(args.length < 2) {
-                    System.out.println("Please provide commit id.");
+                if(args.length < 2 || args.length > 3) {
+                    System.out.println("Error: unknown usage." +
+                            "\nTip: run help to list valid command usage.");
                     return;
                 }
 
-                CheckoutService checkoutService = new CheckoutService();
-                if(args.length < 3) {
-                    if ((args[1]).equals("CURRENT")) {
-                        checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath), false);
-                    } else {
-                        checkoutService.checkout(repoPath, args[1], false);
+                boolean force = false;
+                if(args.length == 3) {
+                    if(!args[2].equals("-f")) {
+                        System.out.println("Error: unknown usage." +
+                                "\nTip: run help to list valid command usage.");
+                        return;
                     }
-                } else if(args[2].equals("-f")) {
-                    if ((args[1]).equals("CURRENT")) {
-                        checkoutService.checkout(repoPath, new CommitService().readCurrent(repoPath), true);
-                    } else {
-                        checkoutService.checkout(repoPath, args[1], true);
+                    force = true;
+                }
+
+                if(args[1].equals("CURRENT")) {
+                    String commitId = new CommitService().readCurrent(repoPath);
+                    if(commitId == null) {
+                        System.out.println("No CURRENT commit.");
+                        return;
                     }
+                    new CheckoutService().checkout(repoPath, commitId, force);
+                } else {
+                    new CheckoutService().checkout(repoPath, args[1], force);
                 }
                 break;
-
             case "status":
                 new StatusService().status(repoPath);
                 break;
