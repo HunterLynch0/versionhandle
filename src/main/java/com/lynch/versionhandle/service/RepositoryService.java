@@ -25,6 +25,8 @@ public class RepositoryService {
             Files.createDirectories(vhPath);
             Files.createDirectories(vhPath.resolve("objects"));
             Files.createDirectories(vhPath.resolve("commits"));
+            Files.createDirectories(vhPath.resolve("branches"));
+            Files.createFile(vhPath.resolve("branches").resolve("main"));
             Files.createFile(vhPath.resolve("CURRENT"));
 
             System.out.println("Repository initialised successfully.");
