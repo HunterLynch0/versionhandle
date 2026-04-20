@@ -26,16 +26,22 @@ public class CommandParser {
         switch(command) {
             case "help":
                 if(args.length != 1) {
-                    System.out.print("Error: unknown additional arguments." +
-                            "\nUsage: help");
+                    System.out.print("Error: unknown additional arguments: ");
+                    for(int i = 1; i < args.length; i++) {
+                        System.out.print(args[i] + " ");
+                    }
+                    System.out.println("Tip: run help to list valid command usage.");
                     return;
                 }
                 printHelp();
                 break;
             case "init":
                 if(args.length != 1) {
-                    System.out.print("Error: unknown additional arguments." +
-                            "\nTip: run help to list valid command usage.");
+                    System.out.print("Error: unknown additional arguments: ");
+                    for(int i = 1; i < args.length; i++) {
+                        System.out.print(args[i] + " ");
+                    }
+                    System.out.println("Tip: run help to list valid command usage.");
                     return;
                 }
                 new RepositoryService().init(repoPath);
@@ -73,8 +79,11 @@ public class CommandParser {
                 } else if (args.length == 1){
                     logService.log(repoPath);
                 } else {
-                    System.out.println("Error: unknown additional arguments." +
-                            "\nTip: run help to list valid command usage.");
+                    System.out.print("Error: unknown additional arguments: ");
+                    for(int i = 1; i < args.length; i++) {
+                        System.out.print(args[i] + " ");
+                    }
+                    System.out.println("Tip: run help to list valid command usage.");
                 }
                 break;
 
@@ -108,13 +117,27 @@ public class CommandParser {
                 break;
             case "status":
                 if(args.length != 1) {
-                    System.out.print("Error: unknown additional arguments." +
-                            "\nTip: run help to list valid command usage.");
+                    System.out.print("Error: unknown additional arguments: ");
+                    for(int i = 1; i < args.length; i++) {
+                        System.out.print(args[i] + " ");
+                    }
+                    System.out.println("Tip: run help to list valid command usage.");
                     return;
                 }
                 new StatusService().status(repoPath);
                 break;
-
+            case "branch":
+                if(args.length > 2) {
+                    System.out.print("Error: unknown additional arguments (branch name cannot include empty spaces): ");
+                    for(int i = 2; i < args.length; i++) {
+                        System.out.print(args[i] + " ");
+                    }
+                    System.out.println("Tip: run help to list valid command usage.");
+                    return;
+                } else {
+                    new BranchService().branch(repoPath, args[1]);
+                }
+                break;
             default:
                 System.out.println("Invalid command: " + command +
                         "\nTip: run 'help' list valid command usage.");
