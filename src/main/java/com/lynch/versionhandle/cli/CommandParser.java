@@ -127,7 +127,11 @@ public class CommandParser {
                 new StatusService().status(repoPath);
                 break;
             case "branch":
-                if(args.length > 2) {
+                if(args.length == 1) {
+                    System.out.println("Error: no branch name provided." +
+                            "\nTip: run help to list valid command usage.");
+                    return;
+                } else if(args.length > 2) {
                     System.out.print("Error: unknown additional arguments (branch name cannot include empty spaces): ");
                     for(int i = 2; i < args.length; i++) {
                         System.out.print(args[i] + " ");
@@ -151,7 +155,8 @@ public class CommandParser {
         System.out.println("   commit <message>");
         System.out.println("   log [-a]");
         System.out.println("   status");
-        System.out.println("   checkout <commitId> [-f] || checkout CURRENT [-f]");
+        System.out.println("   checkout <commitId> [-f]");
+        System.out.println("   branch <branch-name>");
         System.out.println("   help");
     }
 }
