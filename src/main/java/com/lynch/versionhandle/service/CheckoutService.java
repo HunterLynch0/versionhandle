@@ -18,10 +18,10 @@ public class CheckoutService {
     /**
      *
      * @param repoPath
-     * @param commitId
+     * @param targetName
      * @param force
      */
-    public void checkout(Path repoPath, String commitId, boolean force) {
+    public void checkout(Path repoPath, String targetName, boolean force) {
 
         // Check project is initialised
         Path vhPath = repoPath.resolve(".versionhandle");
@@ -31,18 +31,31 @@ public class CheckoutService {
             return;
         }
 
-        // Check that the given id matches a commit
-        Path commitPath = vhPath.resolve("commits").resolve(commitId);
-        if(!Files.exists(commitPath)) {
-            System.out.println("Commit not found. Run 'log -a' to list all commit ids.");
-            return;
-        }
+        // Check whether the target is a branch or a commit
+        Path branchPath = vhPath.resolve("branches").resolve(targetName);
+        Path commitPath = vhPath.resolve("commits").resolve(targetName);
 
+        String targetBranch = null;
+        String targetCommit = null;
 
         CommitService commitService = new CommitService();
 
+        if(Files.exists(branchPath)) {
+            targetBranch = targetName;
+            targetCommit = commitService.readBranch(repoPath, targetBranch);
+        } else if(Files.exists(commitPath)) {
+            targetCommit = targetName;
+        } else {
+            System.out.println("Error: Checkout target not found: " + targetName);
+            return;
+        }
+
+        if(targetCommit == null) {
+            System.out.println("Branch has no commits yet.");
+        }
+
         // Load target commit
-        Commit target = commitService.loadCommit(repoPath, commitId);
+        Commit target = commitService.loadCommit(repoPath, targetCommit);
 
         if(force) {
             // Remove all files in working directory that are not in target including untracked
@@ -69,10 +82,15 @@ public class CheckoutService {
                 throw new RuntimeException("Failed to loop through working directory.", e);
             }
         } else {
-            String currentId = commitService.readCurrent(repoPath);
+            String currentBranch = commitService.readCurrent(repoPath);
+            String currentCommitId = null;
 
-            if(currentId != null) {
-                Commit current = commitService.loadCommit(repoPath, currentId);
+            if(currentBranch != null) {
+                currentCommitId = commitService.readBranch(repoPath, currentBranch);
+            }
+
+            if(currentCommitId != null) {
+                Commit current = commitService.loadCommit(repoPath, currentCommitId);
 
                 // Check for untracked files
                 try {
@@ -146,8 +164,9 @@ public class CheckoutService {
         }
 
         new IndexService().saveIndex(repoPath, new HashMap<String, String>());
-        commitService.writeCurrent(repoPath, commitId);
+        commitService.writeCurrent(repoPath, targetBranch);
 
-        System.out.println("Checked out commit: " + commitId);
+        System.out.println("Checked out: " + targetName);
+
     }
 }
