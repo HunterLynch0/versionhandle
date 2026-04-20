@@ -38,20 +38,24 @@ public class StatusService {
 
         String currentId = commitService.readBranch(repoPath, currentBranch);
 
+        Map<String, String> currentSnapshot = new HashMap<>();
+
+        System.out.println("On branch " + currentBranch);
+
         if(currentId == null) {
-            System.out.println("Branch has no commits yet.");
-            return;
+            System.out.println("No commits yet.");
+        } else {
+            Commit current = commitService.loadCommit(repoPath, currentId);
+            currentSnapshot = current.getSnapshot();
         }
 
-        Commit current = commitService.loadCommit(repoPath, currentId);
+        System.out.println();
 
         List<String> staged = new ArrayList<>();
         List<String> modified = new ArrayList<>();
         List<String> untracked = new ArrayList<>();
 
         try {
-            System.out.println("On branch " + currentBranch);
-
             for(Path path : Files.walk(repoPath).toList()) {
                 if(!Files.isRegularFile(path)) {
                     continue;
@@ -66,7 +70,7 @@ public class StatusService {
                 String hash = HashUtil.sha256(Files.readAllBytes(path));
 
                 // Add to staged - in index but different file content than current file content
-                if(index.containsKey(relativePath) && !index.get(relativePath).equals(current.getSnapshot().get(relativePath))) {
+                if(index.containsKey(relativePath) && !index.get(relativePath).equals(currentSnapshot.get(relativePath))) {
                     staged.add(relativePath);
                 }
 
@@ -76,7 +80,7 @@ public class StatusService {
                 }
 
                 // Add to untracked - not in index or current
-                if(!index.containsKey(relativePath) && !current.getSnapshot().containsKey(relativePath)) {
+                if(!index.containsKey(relativePath) && !currentSnapshot.containsKey(relativePath)) {
                     untracked.add(relativePath);
                 }
             }
