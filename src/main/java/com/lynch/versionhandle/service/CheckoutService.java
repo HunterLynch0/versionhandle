@@ -50,8 +50,11 @@ public class CheckoutService {
             return;
         }
 
-        if(targetCommit == null) {
-            System.out.println("Branch has no commits yet.");
+        if(targetBranch != null && targetCommit == null) {
+            commitService.writeCurrent(repoPath, targetBranch);
+            new IndexService().saveIndex(repoPath, new HashMap<>());
+
+            System.out.println("Checked out empty branch: " + targetBranch);
             return;
         }
 
