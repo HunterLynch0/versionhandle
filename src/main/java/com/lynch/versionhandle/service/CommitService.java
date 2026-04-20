@@ -36,7 +36,12 @@ public class CommitService {
         }
 
         // Get commit data
-        String parentId = readCurrent(repoPath);
+        String branchName = readCurrent(repoPath);
+        if(branchName == null) {
+            System.out.println("Error: no current branch set.");
+            return;
+        }
+        String parentId = readBranch(repoPath, branchName);
         String timestamp = LocalDateTime.now().toString();
         Map<String, String> snapshot;
         if(parentId == null) {
@@ -55,9 +60,10 @@ public class CommitService {
         saveCommit(repoPath, commit);
 
         new IndexService().saveIndex(repoPath, new HashMap<String, String>());
-        writeCurrent(repoPath, hash);
+        writeBranch(repoPath, branchName, hash);
 
         System.out.println("Snapshot committed: " + message);
+        System.out.println("Branch: " + branchName);
         System.out.println("Commit hash: " + hash);
 
     }
@@ -111,6 +117,11 @@ public class CommitService {
         }
     }
 
+    /**
+     * Builds content of commit file
+     * @param commit commit to build file for
+     * @return formatted commit content
+     */
     public String buildCommitContent(Commit commit) {
         StringBuilder commitContent = new StringBuilder();
 
@@ -126,9 +137,9 @@ public class CommitService {
 
 
     /**
-     * Reads CURRENT commit id
+     * Reads CURRENT branch name
      * @param repoPath project root repository
-     * @return id of CURRENT or null if first commit
+     * @return current branch name or null if missing
      */
     public String readCurrent(Path repoPath) {
         Path currentPath = repoPath.resolve(".versionhandle").resolve("CURRENT");
@@ -138,30 +149,72 @@ public class CommitService {
                 return null;
             }
 
-            String content = Files.readString(currentPath).trim();
+            String branch = Files.readString(currentPath).trim();
 
-            if(content.isEmpty()) {
+            if(branch.isEmpty()) {
                 return null;
             }
 
-            return content;
+            return branch;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read CURRENT", e);
+            throw new RuntimeException("Failed to read CURRENT branch", e);
         }
     }
 
     /**
-     * Writes latest commit id to CURRENT
+     * Writes current branch name to CURRENT
      * @param repoPath project root repository
-     * @param hash hashed content (id)
+     * @param branchName name of current branch
      */
-    public void writeCurrent(Path repoPath, String hash) {
+    public void writeCurrent(Path repoPath, String branchName) {
         Path currentPath = repoPath.resolve(".versionhandle").resolve("CURRENT");
 
         try {
-            Files.writeString(currentPath, hash);
+            Files.writeString(currentPath, branchName);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to update CURRENT", e);
+            throw new RuntimeException("Failed to update CURRENT branch", e);
+        }
+    }
+
+    /**
+     * Reads the latest commit id from a branch
+     * @param repoPath project root repository
+     * @param branchName branch name
+     * @return latest commit id from branch or null if missing
+     */
+    public String readBranch(Path repoPath, String branchName) {
+        Path branchPath = repoPath.resolve(".versionhandle").resolve("branches").resolve(branchName);
+
+        try {
+            if(!Files.exists(branchPath)) {
+                return null;
+            }
+
+            String commitId = Files.readString(branchPath).trim();
+
+            if(commitId.isEmpty()) {
+                return null;
+            }
+
+            return commitId;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read branch: " + branchName, e);
+        }
+    }
+
+    /**
+     * Updates a branch to point to a commit
+     * @param repoPath project root repository
+     * @param branchName branch name
+     * @param commitId commit id to write
+     */
+    public void writeBranch(Path repoPath, String branchName, String commitId) {
+        Path branchPath = repoPath.resolve(".versionhandle").resolve("branches").resolve(branchName);
+
+        try {
+            Files.writeString(branchPath, commitId);
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to update branch: " + branchName, e);
         }
     }
 }
