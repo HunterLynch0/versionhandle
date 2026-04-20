@@ -28,13 +28,30 @@ public class StatusService {
         IndexService indexService = new IndexService();
 
         Map<String, String> index = indexService.loadIndex(repoPath);
-        Commit current = commitService.loadCommit(repoPath, commitService.readCurrent(repoPath));
+
+        String currentBranch = commitService.readCurrent(repoPath);
+
+        if(currentBranch == null) {
+            System.out.println("Error: Current branch not set.");
+            return;
+        }
+
+        String currentId = commitService.readBranch(repoPath, currentBranch);
+
+        if(currentId == null) {
+            System.out.println("Branch has no commits yet.");
+            return;
+        }
+
+        Commit current = commitService.loadCommit(repoPath, currentId);
 
         List<String> staged = new ArrayList<>();
         List<String> modified = new ArrayList<>();
         List<String> untracked = new ArrayList<>();
 
         try {
+            System.out.println("On branch " + currentBranch);
+
             for(Path path : Files.walk(repoPath).toList()) {
                 if(!Files.isRegularFile(path)) {
                     continue;
@@ -73,7 +90,7 @@ public class StatusService {
             System.out.println("     <empty>");
         } else {
             for(String file: staged) {
-                System.out.println("   - " + file.toString());
+                System.out.println("   - " + file);
             }
         }
 
@@ -90,7 +107,7 @@ public class StatusService {
 
         System.out.println();
 
-        System.out.println("Untracked files");
+        System.out.println("Untracked files:");
         if(untracked.isEmpty()) {
             System.out.println("     <empty>");
         } else {

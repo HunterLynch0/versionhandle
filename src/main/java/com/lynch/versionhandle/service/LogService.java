@@ -36,7 +36,7 @@ public class LogService {
         String commitId = commitService.readBranch(repoPath, currentBranch);
 
         if(commitId == null) {
-            System.out.println("Error: Branch has no commits.");
+            System.out.println("Branch has no commits yet.");
             return;
         }
 
