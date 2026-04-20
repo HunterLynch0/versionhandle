@@ -32,7 +32,7 @@ public class StatusService {
         String currentBranch = commitService.readCurrent(repoPath);
 
         if(currentBranch == null) {
-            System.out.println("Error: Current branch not set.");
+            System.out.println("Error: no current branch set.");
             return;
         }
 
