@@ -169,6 +169,10 @@ public class CommitService {
     public void writeCurrent(Path repoPath, String branchName) {
         Path currentPath = repoPath.resolve(".versionhandle").resolve("CURRENT");
 
+        if(branchName == null) {
+            branchName = "";
+        }
+
         try {
             Files.writeString(currentPath, branchName);
         } catch (IOException e) {
