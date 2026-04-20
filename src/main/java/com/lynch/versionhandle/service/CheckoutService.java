@@ -52,6 +52,7 @@ public class CheckoutService {
 
         if(targetCommit == null) {
             System.out.println("Branch has no commits yet.");
+            return;
         }
 
         // Load target commit
