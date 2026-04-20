@@ -25,10 +25,18 @@ public class LogService {
         }
 
         // Read CURRENT
-        String commitId = new CommitService().readCurrent(repoPath);
+        CommitService commitService = new CommitService();
+        String currentBranch = commitService.readCurrent(repoPath);
+
+        if(currentBranch == null) {
+            System.out.println("Error: Current branch not set.");
+            return;
+        }
+
+        String commitId = commitService.readBranch(repoPath, currentBranch);
 
         if(commitId == null) {
-            System.out.println("No commits.");
+            System.out.println("Error: Branch has no commits.");
             return;
         }
 
@@ -39,7 +47,7 @@ public class LogService {
 
         // Print commit chain starting from CURRENT
         while(commitId != null) {
-            Commit commit = new CommitService().loadCommit(repoPath, commitId);
+            Commit commit = commitService.loadCommit(repoPath, commitId);
 
             System.out.println("commit " + commit.getId());
             System.out.println("Message: " + commit.getMessage());
