@@ -36,7 +36,7 @@ public class CheckoutService {
         Path commitPath = vhPath.resolve("commits").resolve(targetName);
 
         String targetBranch = null;
-        String targetCommit = null;
+        String targetCommit;
 
         CommitService commitService = new CommitService();
 

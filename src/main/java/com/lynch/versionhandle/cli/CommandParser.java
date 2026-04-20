@@ -103,17 +103,7 @@ public class CommandParser {
                     }
                     force = true;
                 }
-
-                if(args[1].equals("CURRENT")) {
-                    String commitId = new CommitService().readCurrent(repoPath);
-                    if(commitId == null) {
-                        System.out.println("No CURRENT commit.");
-                        return;
-                    }
-                    new CheckoutService().checkout(repoPath, commitId, force);
-                } else {
-                    new CheckoutService().checkout(repoPath, args[1], force);
-                }
+                new CheckoutService().checkout(repoPath, args[1], force);
                 break;
             case "status":
                 if(args.length != 1) {
