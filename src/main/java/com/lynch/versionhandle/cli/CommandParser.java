@@ -145,8 +145,8 @@ public class CommandParser {
         System.out.println("   commit <message>");
         System.out.println("   log [-a]");
         System.out.println("   status");
-        System.out.println("   checkout <commitId> [-f]");
-        System.out.println("   branch <branch-name>");
+        System.out.println("   checkout <commitId|branchName> [-f]");
+        System.out.println("   branch <branchName>");
         System.out.println("   help");
     }
 }
