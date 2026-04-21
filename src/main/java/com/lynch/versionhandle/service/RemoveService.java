@@ -40,27 +40,27 @@ public class RemoveService {
         String currentCommitId = commitService.readBranch(repoPath, currentBranch);
 
         boolean tracked = false;
-
         // Check file is tracked
         if(currentCommitId != null) {
             Commit current = commitService.loadCommit(repoPath, currentCommitId);
             tracked = current.getSnapshot().containsKey(fileName);
         }
 
-        Path filePath = repoPath.resolve(fileName);
+        Map<String, String> index = indexService.loadIndex(repoPath);
+        boolean staged = index.containsKey(fileName);
 
-        if(!tracked) {
-            System.out.println("File not tracked: " + fileName);
+        if(!tracked && !staged) {
+            System.out.println("File is not tracked or staged: " + fileName);
             return;
         }
+
+        Path filePath = repoPath.resolve(fileName);
 
         try {
             Files.deleteIfExists(filePath);
         } catch(IOException e) {
             throw new RuntimeException("Failed to delete file: " + fileName);
         }
-
-        Map<String, String> index = indexService.loadIndex(repoPath);
 
         index.put(fileName, DELETED);
         indexService.saveIndex(repoPath, index);
