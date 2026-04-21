@@ -59,7 +59,6 @@ public class CommitService {
                 snapshot.put(entry.getKey(), entry.getValue());
             }
         }
-        snapshot.putAll(index);
 
         // Create the content first to get the id for the actual commit, then create the commit with the created hash
         String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, snapshot));

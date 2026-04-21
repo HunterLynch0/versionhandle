@@ -141,7 +141,7 @@ public class CommandParser {
                 for(int i = 1; i < args.length; i++) {
                     new RemoveService().remove(repoPath, args[i]);
                 }
-
+                break;
             default:
                 System.out.println("Invalid command: " + command +
                         "\nTip: run 'help' list valid command usage.");
