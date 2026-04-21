@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class StatusService {
 
+    private static final String DELETED = "<DELETED>";
+
     public void status(Path repoPath) {
 
         // Check project is initialised
@@ -54,6 +56,13 @@ public class StatusService {
         List<String> staged = new ArrayList<>();
         List<String> modified = new ArrayList<>();
         List<String> untracked = new ArrayList<>();
+        List<String> deleted = new ArrayList<>();
+
+        for(Map.Entry<String, String> entry: index.entrySet()) {
+            if(entry.getKey().equals(DELETED)) {
+                deleted.add(entry.getKey());
+            }
+        }
 
         try {
             for(Path path : Files.walk(repoPath).toList()) {
@@ -116,6 +125,16 @@ public class StatusService {
             System.out.println("     <empty>");
         } else {
             for(String file: untracked) {
+                System.out.println("   - " + file);
+            }
+        }
+        System.out.println();
+
+        System.out.println("Staged deletions:");
+        if(deleted.isEmpty()) {
+            System.out.println("     <empty>");
+        } else {
+            for(String file : deleted) {
                 System.out.println("   - " + file);
             }
         }
