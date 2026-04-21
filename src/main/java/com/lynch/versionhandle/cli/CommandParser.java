@@ -132,6 +132,16 @@ public class CommandParser {
                     new BranchService().branch(repoPath, args[1]);
                 }
                 break;
+            case "remove":
+                if(args.length == 1) {
+                    System.out.println("Error: no filename provided." +
+                            "\nTip: run help to list valid command usage.");
+                    return;
+                }
+                for(int i = 1; i < args.length; i++) {
+                    new RemoveService().remove(repoPath, args[i]);
+                }
+
             default:
                 System.out.println("Invalid command: " + command +
                         "\nTip: run 'help' list valid command usage.");
@@ -142,6 +152,7 @@ public class CommandParser {
         System.out.println("Versionhandle commands:");
         System.out.println("   init");
         System.out.println("   add <filename> [more files] || add .");
+        System.out.println("   remove <filename> [more files]");
         System.out.println("   commit <message>");
         System.out.println("   log [-a]");
         System.out.println("   status");
