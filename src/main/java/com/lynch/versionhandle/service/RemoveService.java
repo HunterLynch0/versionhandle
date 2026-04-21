@@ -12,9 +12,9 @@ public class RemoveService {
     public static final String DELETED = "<DELETED>";
 
     /**
-     *
-     * @param repoPath
-     * @param fileName
+     * Remove a file from working directory and mark it as deleted in index to exclude from future commits
+     * @param repoPath project root repository
+     * @param fileName file to remove
      */
     public void remove(Path repoPath, String fileName) {
 
@@ -49,8 +49,8 @@ public class RemoveService {
 
         Path filePath = repoPath.resolve(fileName);
 
-        if(!tracked && !Files.exists(filePath)) {
-            System.out.println("File not found: " + fileName);
+        if(!tracked) {
+            System.out.println("File not tracked: " + fileName);
             return;
         }
 
@@ -62,7 +62,7 @@ public class RemoveService {
 
         Map<String, String> index = indexService.loadIndex(repoPath);
 
-        index.put(fileName, "<DELETED>");
+        index.put(fileName, DELETED);
         indexService.saveIndex(repoPath, index);
 
         System.out.println("File deletion staged: " + fileName);

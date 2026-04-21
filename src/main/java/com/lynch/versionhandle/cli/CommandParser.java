@@ -123,10 +123,10 @@ public class CommandParser {
                     return;
                 } else if(args.length > 2) {
                     System.out.print("Error: unknown additional arguments (branch name cannot include empty spaces): ");
-                    for(int i = 2; i < args.length; i++) {
+                    for(int i = 1; i < args.length; i++) {
                         System.out.print(args[i] + " ");
                     }
-                    System.out.println("Tip: run help to list valid command usage.");
+                    System.out.println("\nTip: run help to list valid command usage.");
                     return;
                 } else {
                     new BranchService().branch(repoPath, args[1]);
