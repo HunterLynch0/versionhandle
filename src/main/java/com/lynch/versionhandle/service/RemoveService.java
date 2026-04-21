@@ -51,6 +51,7 @@ public class RemoveService {
 
         if(!tracked && !Files.exists(filePath)) {
             System.out.println("File not found: " + fileName);
+            return;
         }
 
         try {
@@ -60,6 +61,9 @@ public class RemoveService {
         }
 
         Map<String, String> index = indexService.loadIndex(repoPath);
+
+        index.put(fileName, "<DELETED>");
+        indexService.saveIndex(repoPath, index);
 
         System.out.print("File deletion staged: " + fileName);
     }
