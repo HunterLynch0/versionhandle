@@ -13,6 +13,8 @@ import java.util.Scanner;
 
 public class CommitService {
 
+    private static final String DELETED = "<DELETED>";
+
     /**
      * Checks conditions for a snapshot to be commited then commits if valid
      * @param message user provided message describing their commit
@@ -48,6 +50,14 @@ public class CommitService {
             snapshot = new HashMap<>();
         } else {
             snapshot = new HashMap<>(loadCommit(repoPath, parentId).getSnapshot());
+        }
+
+        for(Map.Entry<String, String> entry: index.entrySet()) {
+            if(entry.getKey().equals(DELETED)) {
+                snapshot.remove(entry.getKey());
+            } else {
+                snapshot.put(entry.getKey(), entry.getValue());
+            }
         }
         snapshot.putAll(index);
 
