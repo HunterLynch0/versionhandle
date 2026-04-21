@@ -65,6 +65,6 @@ public class RemoveService {
         index.put(fileName, "<DELETED>");
         indexService.saveIndex(repoPath, index);
 
-        System.out.print("File deletion staged: " + fileName);
+        System.out.println("File deletion staged: " + fileName);
     }
 }
