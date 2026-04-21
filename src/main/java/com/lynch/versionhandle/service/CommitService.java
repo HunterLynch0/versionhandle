@@ -53,7 +53,7 @@ public class CommitService {
         }
 
         for(Map.Entry<String, String> entry: index.entrySet()) {
-            if(entry.getKey().equals(DELETED)) {
+            if(entry.getValue().equals(DELETED)) {
                 snapshot.remove(entry.getKey());
             } else {
                 snapshot.put(entry.getKey(), entry.getValue());

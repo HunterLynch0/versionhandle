@@ -58,12 +58,6 @@ public class StatusService {
         List<String> untracked = new ArrayList<>();
         List<String> deleted = new ArrayList<>();
 
-        for(Map.Entry<String, String> entry: index.entrySet()) {
-            if(entry.getKey().equals(DELETED)) {
-                deleted.add(entry.getKey());
-            }
-        }
-
         try {
             for(Path path : Files.walk(repoPath).toList()) {
                 if(!Files.isRegularFile(path)) {
@@ -96,6 +90,12 @@ public class StatusService {
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to scan working directory", e);
+        }
+
+        for(Map.Entry<String, String> entry: index.entrySet()) {
+            if(entry.getValue().equals(DELETED)) {
+                deleted.add(entry.getKey());
+            }
         }
 
         System.out.println("Staged changes:");
