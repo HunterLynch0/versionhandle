@@ -29,7 +29,9 @@ public class CommitService {
             return;
         }
 
-        Map<String, String> index = new IndexService().loadIndex(repoPath);
+
+        IndexService indexService = new IndexService();
+        Map<String, String> index = indexService.loadIndex(repoPath);
 
         // Check that there are any files staged ready for a commit
         if(index.isEmpty()) {
@@ -60,20 +62,21 @@ public class CommitService {
             }
         }
 
-        // Create the content first to get the id for the actual commit, then create the commit with the created hash
+        // Create the content first to get the hash for the actual commit, then create the commit with the created commitId
         String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, snapshot));
-        String hash = HashUtil.sha256(commitContent.getBytes());
-        Commit commit = new Commit(hash, message, timestamp, parentId, snapshot);
+        String commitId = HashUtil.sha256(commitContent.getBytes());
+        Commit commit = new Commit(commitId, message, timestamp, parentId, snapshot);
 
         // Finalise the commit
         saveCommit(repoPath, commit);
 
-        new IndexService().saveIndex(repoPath, new HashMap<String, String>());
-        writeBranch(repoPath, branchName, hash);
+        indexService.saveIndex(repoPath, new HashMap<String, String>());
+        writeBranch(repoPath, branchName, commitId);
+        writeHead(repoPath, commitId);
 
         System.out.println("Snapshot committed: " + message);
         System.out.println("Branch: " + branchName);
-        System.out.println("Commit hash: " + hash);
+        System.out.println("commitId: " + commitId);
 
     }
 
