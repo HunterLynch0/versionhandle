@@ -11,15 +11,17 @@ public class AddService {
 
     /**
      * Adds a file or all files in the repository to staging area
+     * @param repoPath project root repository
      * @param fileName name of file, or "." to add all
+     * @param counter counter so that error messages are not printed for each file
      */
-    public void add(Path repoPath, String fileName) {
-
+    public void add(Path repoPath, String fileName, int counter) {
         // Either add recursively or adds a single file
         if(fileName.equals(".")) {
             try {
                 List<Path> files = Files.walk(repoPath).toList();
 
+                int counter2 = 1;
                 for(Path file: files) {
                     if(!Files.isRegularFile(file)) continue;
 
@@ -27,14 +29,15 @@ public class AddService {
 
                     if(relativeName.startsWith(".versionhandle")) continue;
 
-                    addSingleFile(repoPath, relativeName);
+                    addSingleFile(repoPath, relativeName, counter2);
+                    counter2++;
                 }
 
             } catch (IOException e) {
                 throw new RuntimeException("Failed to fetch files", e);
             }
         } else {
-            addSingleFile(repoPath, fileName);
+            addSingleFile(repoPath, fileName, counter);
         }
     }
 
@@ -42,22 +45,27 @@ public class AddService {
      * Checks conditions for the file to be added then adds to staging area if valid
      * @param repoPath project root repository
      * @param fileName name of file requested to add
+     * @param counter counter so that error messages are not printed for each file
      */
-    public void addSingleFile(Path repoPath, String fileName) {
+    public void addSingleFile(Path repoPath, String fileName, int counter) {
 
         Path vhPath = repoPath.resolve(".versionhandle");
         Path filePath = repoPath.resolve(fileName);
 
         // Checks project is initialised
         if(!Files.exists(vhPath)) {
-            System.out.println("Not a versionhandle repository. Initialise project first.");
+            if(counter == 1) {
+                System.out.println("Not a versionhandle repository. Initialise project first.");
+            }
             return;
         }
 
         // Check for detached head state
         String currentBranch = new CommitService().readCurrent(repoPath);
         if(currentBranch == null) {
-            System.out.println("Error: operation not available in detached HEAD state.");
+            if(counter == 1) {
+                System.out.println("Error: operation not available in detached HEAD state.");
+            }
             return;
         }
 

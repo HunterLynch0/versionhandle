@@ -55,7 +55,7 @@ public class CommandParser {
                 }
                 for(int i = 1; i < args.length; i++) {
                     String fileName = args[i];
-                    new AddService().add(repoPath, fileName);
+                    new AddService().add(repoPath, fileName, i);
                 }
                 break;
 
@@ -105,6 +105,7 @@ public class CommandParser {
                 }
                 new CheckoutService().checkout(repoPath, args[1], force);
                 break;
+
             case "status":
                 if(args.length != 1) {
                     System.out.print("Error: unknown additional arguments: ");
@@ -116,6 +117,7 @@ public class CommandParser {
                 }
                 new StatusService().status(repoPath);
                 break;
+
             case "branch":
                 if(args.length == 1) {
                     System.out.println("Error: no branch name provided." +
@@ -132,6 +134,7 @@ public class CommandParser {
                     new BranchService().branch(repoPath, args[1]);
                 }
                 break;
+
             case "remove":
                 if(args.length == 1) {
                     System.out.println("Error: no filename provided." +
@@ -142,6 +145,7 @@ public class CommandParser {
                     new RemoveService().remove(repoPath, args[i]);
                 }
                 break;
+
             default:
                 System.out.println("Invalid command: " + command +
                         "\nTip: run 'help' list valid command usage.");
