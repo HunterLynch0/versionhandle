@@ -29,7 +29,6 @@ public class CommitService {
             return;
         }
 
-
         IndexService indexService = new IndexService();
         Map<String, String> index = indexService.loadIndex(repoPath);
 
@@ -39,11 +38,18 @@ public class CommitService {
             return;
         }
 
+        // Check for detached head state
+        String currentBranch = readCurrent(repoPath);
+        if(currentBranch == null) {
+            System.out.println("Error: cannot commit in detached HEAD state.");
+            return;
+        }
+
         // Get commit data
-        String branchName = readCurrent(repoPath);
-        String parentId = readBranch(repoPath, branchName);
+        String parentId = readBranch(repoPath, currentBranch);
         String timestamp = LocalDateTime.now().toString();
         Map<String, String> snapshot;
+
         if(parentId == null) {
             snapshot = new HashMap<>();
         } else {
