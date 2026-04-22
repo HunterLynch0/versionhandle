@@ -29,20 +29,13 @@ public class RemoveService {
         IndexService indexService = new IndexService();
         CommitService commitService = new CommitService();
 
-        String currentBranch = commitService.readCurrent(repoPath);
-
-        // Check branch is set
-        if(currentBranch == null) {
-            System.out.println("Error: current branch not set.");
-            return;
-        }
-
-        String currentCommitId = commitService.readBranch(repoPath, currentBranch);
+        String commitId = commitService.readHead(repoPath);
 
         boolean tracked = false;
         // Check file is tracked
-        if(currentCommitId != null) {
-            Commit current = commitService.loadCommit(repoPath, currentCommitId);
+
+        if(commitId != null) {
+            Commit current = commitService.loadCommit(repoPath, commitId);
             tracked = current.getSnapshot().containsKey(fileName);
         }
 
