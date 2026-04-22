@@ -13,6 +13,7 @@ public class LogService {
 
     /**
      * Prints commit history from current with details of timestamp and message
+     * @param repoPath project root repository
      */
     public void log(Path repoPath) {
 
@@ -24,26 +25,28 @@ public class LogService {
             return;
         }
 
-        // Read CURRENT
         CommitService commitService = new CommitService();
+
         String currentBranch = commitService.readCurrent(repoPath);
-
-        if(currentBranch == null) {
-            System.out.println("Error: Current branch not set.");
-            return;
-        }
-
-        String commitId = commitService.readBranch(repoPath, currentBranch);
+        String commitId = commitService.readHead(repoPath);
 
         if(commitId == null) {
-            System.out.println("Branch has no commits yet.");
+            System.out.println("No commits.");
             return;
         }
 
-        // Warn that commits are only listed from CURRENT
-        System.out.println("Note:" +
-                "\n   - Commits are listed descending from current." +
-                "\n   - To log all commits run 'log -a'\n");
+        // Basic info before log
+        if(currentBranch == null) {
+            System.out.println("Note:" +
+                    "\n   - Detached HEAD at " + commitId +
+                    "\n   - Commits are listed descending from HEAD." +
+                    "\n   - To log all commits run 'log -a'\n");
+        } else {
+            System.out.println("Note:" +
+                    "\n   - On branch " + currentBranch +
+                    "\n   - Commits are listed descending from HEAD." +
+                    "\n   - To log all commits run 'log -a'\n");
+        }
 
         // Print commit chain starting from CURRENT
         while(commitId != null) {
@@ -61,6 +64,7 @@ public class LogService {
 
     /**
      * Prints commit history from top with details of timestamp and message
+     * @param  repoPath project root repository
      */
     public void logAll(Path repoPath) {
 
