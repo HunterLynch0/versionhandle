@@ -31,13 +31,7 @@ public class BranchService {
 
         CommitService commitService = new CommitService();
 
-        // Get latest commitId and make sure there is a current branch set + a pointer to latest commit
-        String currentBranch = commitService.readCurrent(repoPath);
-        if(currentBranch == null) {
-            System.out.println("Error: no current branch set.");
-            return;
-        }
-        String commitId = commitService.readBranch(repoPath, currentBranch);
+        String commitId = commitService.readHead(repoPath);
         if(commitId == null) {
             commitId = "";
         }
@@ -46,6 +40,7 @@ public class BranchService {
         try {
             Files.createFile(branchPath);
             Files.writeString(branchPath, commitId);
+            System.out.println("Created branch: " + branchName);
         } catch(IOException e) {
             throw new RuntimeException("Failed to create branch: " + branchName, e);
         }
