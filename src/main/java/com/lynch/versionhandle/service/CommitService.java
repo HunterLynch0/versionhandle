@@ -32,16 +32,16 @@ public class CommitService {
         IndexService indexService = new IndexService();
         Map<String, String> index = indexService.loadIndex(repoPath);
 
-        // Check that there are any files staged ready for a commit
-        if(index.isEmpty()) {
-            System.out.println("Nothing to commit.");
-            return;
-        }
-
         // Check for detached head state
         String currentBranch = readCurrent(repoPath);
         if(currentBranch == null) {
             System.out.println("Error: cannot commit in detached HEAD state.");
+            return;
+        }
+
+        // Check that there are any files staged ready for a commit
+        if(index.isEmpty()) {
+            System.out.println("Nothing to commit.");
             return;
         }
 

@@ -29,6 +29,13 @@ public class RemoveService {
         IndexService indexService = new IndexService();
         CommitService commitService = new CommitService();
 
+        // Check for detached head state
+        String currentBranch = commitService.readCurrent(repoPath);
+        if(currentBranch == null) {
+            System.out.println("Error: operation not available in detached HEAD state.");
+            return;
+        }
+
         String commitId = commitService.readHead(repoPath);
 
         boolean tracked = false;

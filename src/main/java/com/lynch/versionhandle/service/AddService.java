@@ -54,6 +54,13 @@ public class AddService {
             return;
         }
 
+        // Check for detached head state
+        String currentBranch = new CommitService().readCurrent(repoPath);
+        if(currentBranch == null) {
+            System.out.println("Error: operation not available in detached HEAD state.");
+            return;
+        }
+
         // Checks file exists in relevant directory and is a file not a directory
         if(!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
             System.out.println("File does not exist: " + fileName);
