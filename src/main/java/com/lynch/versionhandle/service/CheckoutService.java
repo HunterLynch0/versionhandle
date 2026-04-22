@@ -31,6 +31,9 @@ public class CheckoutService {
             return;
         }
 
+        CommitService commitService = new CommitService();
+        IndexService indexService = new IndexService();
+
         // Check whether the target is a branch or a commit
         Path branchPath = vhPath.resolve("branches").resolve(targetName);
         Path commitPath = vhPath.resolve("commits").resolve(targetName);
@@ -38,21 +41,37 @@ public class CheckoutService {
         String targetBranch = null;
         String targetCommit;
 
-        CommitService commitService = new CommitService();
-
         if(Files.exists(branchPath)) {
             targetBranch = targetName;
             targetCommit = commitService.readBranch(repoPath, targetBranch);
         } else if(Files.exists(commitPath)) {
             targetCommit = targetName;
         } else {
-            System.out.println("Error: Checkout target not found: " + targetName);
+            System.out.println("Error: checkout target not found: " + targetName);
             return;
         }
 
         if(targetBranch != null && targetCommit == null) {
+            try {
+                for(Path path: Files.walk(repoPath).toList()) {
+                    if(!Files.isRegularFile(path)) {
+                        continue;
+                    }
+
+                    String relativePath = repoPath.relativize(path).toString();
+                    if(relativePath.startsWith(".versionhandle")) {
+                        continue;
+                    }
+
+                    Files.deleteIfExists(path);
+                }
+            } catch(IOException e) {
+                throw new RuntimeException("Failed to clear working directory for checking out empty branch.", e);
+            }
+
+            indexService.saveIndex(repoPath, new HashMap<>());
             commitService.writeCurrent(repoPath, targetBranch);
-            new IndexService().saveIndex(repoPath, new HashMap<>());
+            commitService.writeHead(repoPath, null);
 
             System.out.println("Checked out empty branch: " + targetBranch);
             return;
@@ -86,12 +105,7 @@ public class CheckoutService {
                 throw new RuntimeException("Failed to loop through working directory.", e);
             }
         } else {
-            String currentBranch = commitService.readCurrent(repoPath);
-            String currentCommitId = null;
-
-            if(currentBranch != null) {
-                currentCommitId = commitService.readBranch(repoPath, currentBranch);
-            }
+            String currentCommitId = commitService.readHead(repoPath);
 
             if(currentCommitId != null) {
                 Commit current = commitService.loadCommit(repoPath, currentCommitId);
@@ -107,7 +121,6 @@ public class CheckoutService {
                         }
 
                         String relativePath = repoPath.relativize(path).toString();
-
                         if (relativePath.startsWith(".versionhandle")) {
                             continue;
                         }
@@ -167,8 +180,9 @@ public class CheckoutService {
             }
         }
 
-        new IndexService().saveIndex(repoPath, new HashMap<String, String>());
+        indexService.saveIndex(repoPath, new HashMap<String, String>());
         commitService.writeCurrent(repoPath, targetBranch);
+        commitService.writeHead(repoPath, targetCommit);
 
         System.out.println("Checked out: " + targetName);
 
