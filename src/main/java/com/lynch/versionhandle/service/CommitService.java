@@ -41,10 +41,6 @@ public class CommitService {
 
         // Get commit data
         String branchName = readCurrent(repoPath);
-        if(branchName == null) {
-            System.out.println("Error: no current branch set.");
-            return;
-        }
         String parentId = readBranch(repoPath, branchName);
         String timestamp = LocalDateTime.now().toString();
         Map<String, String> snapshot;
