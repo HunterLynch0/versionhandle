@@ -73,11 +73,11 @@ public class CommitService {
         saveCommit(repoPath, commit);
 
         indexService.saveIndex(repoPath, new HashMap<String, String>());
-        writeBranch(repoPath, branchName, commitId);
+        writeBranch(repoPath, currentBranch, commitId);
         writeHead(repoPath, commitId);
 
         System.out.println("Snapshot committed: " + message);
-        System.out.println("Branch: " + branchName);
+        System.out.println("Branch: " + currentBranch);
         System.out.println("commitId: " + commitId);
 
     }
