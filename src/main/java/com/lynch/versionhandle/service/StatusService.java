@@ -3,7 +3,6 @@ package com.lynch.versionhandle.service;
 import com.lynch.versionhandle.model.Commit;
 import com.lynch.versionhandle.util.HashUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,23 +31,27 @@ public class StatusService {
         Map<String, String> index = indexService.loadIndex(repoPath);
 
         String currentBranch = commitService.readCurrent(repoPath);
-
-        if(currentBranch == null) {
-            System.out.println("Error: no current branch set.");
-            return;
-        }
-
-        String currentId = commitService.readBranch(repoPath, currentBranch);
+        String headId = commitService.readHead(repoPath);
 
         Map<String, String> currentSnapshot = new HashMap<>();
 
-        System.out.println("On branch " + currentBranch);
-
-        if(currentId == null) {
-            System.out.println("No commits yet.");
+        if(currentBranch == null) {
+            if(headId == null) {
+                System.out.println("Detached HEAD with no commit.");
+            } else {
+                System.out.println("Detached HEAD at " + headId);
+                Commit current = commitService.loadCommit(repoPath, headId);
+                currentSnapshot = current.getSnapshot();
+            }
         } else {
-            Commit current = commitService.loadCommit(repoPath, currentId);
-            currentSnapshot = current.getSnapshot();
+            System.out.println("On branch " + currentBranch);
+
+            if(headId == null) {
+                System.out.println("No commits.");
+            } else {
+                Commit current = commitService.loadCommit(repoPath, headId);
+                currentSnapshot = current.getSnapshot();
+            }
         }
 
         System.out.println();
@@ -69,6 +72,9 @@ public class StatusService {
                 if(relativePath.startsWith(".versionhandle")) {
                     continue;
                 }
+
+                // Skip deleted
+                if(index.containsKey(relativePath) && index.get(relativePath).equals(DELETED));
 
                 String hash = HashUtil.sha256(Files.readAllBytes(path));
 
@@ -98,7 +104,7 @@ public class StatusService {
             }
         }
 
-        System.out.println("Staged changes:");
+        System.out.println("\nStaged changes:");
         if(staged.isEmpty()) {
             System.out.println("     <empty>");
         } else {
