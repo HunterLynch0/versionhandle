@@ -104,7 +104,7 @@ public class StatusService {
             }
         }
 
-        System.out.println("\nStaged changes:");
+        System.out.println("Staged changes:");
         if(staged.isEmpty()) {
             System.out.println("     <empty>");
         } else {
