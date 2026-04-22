@@ -152,6 +152,9 @@ public class CommandParser {
         }
     }
 
+    /**
+     * Print CLI help menu
+     */
     public void printHelp() {
         System.out.println("Versionhandle commands:");
         System.out.println("   init");

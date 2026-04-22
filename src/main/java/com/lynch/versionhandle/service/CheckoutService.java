@@ -16,10 +16,10 @@ import static java.nio.file.Files.deleteIfExists;
 public class CheckoutService {
 
     /**
-     *
-     * @param repoPath
-     * @param targetName
-     * @param force
+     * Move users working directory to a given branch or commit(detached head mode)
+     * @param repoPath project root repository
+     * @param targetName target branch or commit
+     * @param force force option to checkout with untracked files meaning you will lose them
      */
     public void checkout(Path repoPath, String targetName, boolean force) {
 

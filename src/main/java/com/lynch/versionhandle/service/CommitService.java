@@ -17,6 +17,7 @@ public class CommitService {
 
     /**
      * Checks conditions for a snapshot to be commited then commits if valid
+     * @param repoPath project root repository
      * @param message user provided message describing their commit
      */
     public void commit(Path repoPath, String message) {

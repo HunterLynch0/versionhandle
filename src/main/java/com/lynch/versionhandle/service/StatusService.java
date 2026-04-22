@@ -15,6 +15,10 @@ public class StatusService {
 
     private static final String DELETED = "<DELETED>";
 
+    /**
+     * Gives information on current branch, files staged, files modified, files untracked, files deleted
+     * @param repoPath project root repository
+     */
     public void status(Path repoPath) {
 
         // Check project is initialised
@@ -104,6 +108,7 @@ public class StatusService {
             }
         }
 
+        // Print staged changes
         System.out.println("Staged changes:");
         if(staged.isEmpty()) {
             System.out.println("     <empty>");
@@ -115,6 +120,7 @@ public class StatusService {
 
         System.out.println();
 
+        // Print changes not staged
         System.out.println("Changes not staged:");
         if(modified.isEmpty()) {
             System.out.println("     <empty>");
@@ -126,6 +132,7 @@ public class StatusService {
 
         System.out.println();
 
+        // Print untracked files
         System.out.println("Untracked files:");
         if(untracked.isEmpty()) {
             System.out.println("     <empty>");
@@ -136,6 +143,7 @@ public class StatusService {
         }
         System.out.println();
 
+        // Print staged deletions
         System.out.println("Staged deletions:");
         if(deleted.isEmpty()) {
             System.out.println("     <empty>");
