@@ -21,13 +21,18 @@ public class RepositoryService {
         }
 
         try {
-            // Create versionhandle folders
+            // Create versionhandle directories
             Files.createDirectories(vhPath);
             Files.createDirectories(vhPath.resolve("objects"));
             Files.createDirectories(vhPath.resolve("commits"));
             Files.createDirectories(vhPath.resolve("branches"));
+
+            // Create versionhandle files
             Files.createFile(vhPath.resolve("branches").resolve("main"));
             Files.createFile(vhPath.resolve("CURRENT"));
+            Files.createFile(vhPath.resolve("HEAD"));
+
+            // Write to files
             Files.writeString(vhPath.resolve("CURRENT"), "main");
 
             System.out.println("Repository initialised successfully.");
