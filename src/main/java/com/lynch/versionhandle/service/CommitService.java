@@ -224,10 +224,58 @@ public class CommitService {
     public void writeBranch(Path repoPath, String branchName, String commitId) {
         Path branchPath = repoPath.resolve(".versionhandle").resolve("branches").resolve(branchName);
 
+        if(commitId == null) {
+            commitId = "";
+        }
+
         try {
             Files.writeString(branchPath, commitId);
         } catch(IOException e) {
             throw new RuntimeException("Failed to update branch: " + branchName, e);
+        }
+    }
+
+    /**
+     * Reads the latest commit id from HEAD
+     * @param repoPath project root repository
+     * @return latest commit id from HEAD or null if missing
+     */
+    public String readHead(Path repoPath) {
+        Path headPath = repoPath.resolve(".versionhandle").resolve("HEAD");
+
+        try {
+            if(!Files.exists(headPath)) {
+                return null;
+            }
+
+            String commitId = Files.readString(headPath).trim();
+
+            if(commitId.isEmpty()) {
+                return null;
+            }
+
+            return commitId;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read HEAD: ", e);
+        }
+    }
+
+    /**
+     * Updates HEAD to point to a commit
+     * @param repoPath project root repository
+     * @param commitId commit id to write
+     */
+    public void writeHead(Path repoPath, String commitId) {
+        Path branchPath = repoPath.resolve(".versionhandle").resolve("HEAD");
+
+        if(commitId == null) {
+            commitId = "";
+        }
+
+        try {
+            Files.writeString(branchPath, commitId);
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to update HEAD: ", e);
         }
     }
 }
