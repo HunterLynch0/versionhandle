@@ -91,7 +91,7 @@ public class AddService {
             new IndexService().stageFile(repoPath, fileName, hash);
 
             System.out.println("File staged: " + fileName);
-            System.out.println("Object hash: " + hash + "\n");
+            System.out.println("Object hash: " + hash);
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to add file: " + fileName, e);
