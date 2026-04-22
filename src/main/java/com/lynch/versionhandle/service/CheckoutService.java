@@ -1,6 +1,7 @@
 package com.lynch.versionhandle.service;
 
 import com.lynch.versionhandle.model.Commit;
+import com.lynch.versionhandle.util.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,8 +113,10 @@ public class CheckoutService {
 
                 // Check for untracked files
                 try {
-                    List<Path> unTrackedFiles = new ArrayList<>();
-                    boolean unTracked = false;
+                    List<String> untrackedFiles = new ArrayList<>();
+                    List<String> modifiedFiles = new ArrayList<>();
+                    boolean untracked = false;
+                    boolean modified = false;
 
                     for (Path path : Files.walk(repoPath).toList()) {
                         if (!Files.isRegularFile(path)) {
@@ -126,19 +129,53 @@ public class CheckoutService {
                         }
 
                         if (!current.getSnapshot().containsKey(relativePath)) {
-                            unTracked = true;
-                            unTrackedFiles.add(path);
+                            untrackedFiles.add(relativePath);
+                            continue;
+                        }
+
+                        String currentHash = current.getSnapshot().get(relativePath);
+                        String workingHash = HashUtil.sha256(Files.readAllBytes(path));
+
+                        if(!currentHash.equals(workingHash)) {
+                            modifiedFiles.add(relativePath);
                         }
                     }
 
-                    if(unTracked) {
-                        System.out.println("Checkout aborted: Working directory contains untracked files.\n\nUntracked files:");
-                        for(Path path: unTrackedFiles) {
-                            System.out.println("   - " + repoPath.relativize(path));
+                    for(Map.Entry<String, String> entry: current.getSnapshot().entrySet()) {
+                        if(!Files.exists(repoPath.resolve(entry.getKey()))) {
+                            modifiedFiles.add(entry.getKey() +" (deleted locally)");
                         }
-                        System.out.println("\nFixes:"  +
-                                "\n   - Stage and commit files to save current working directory." +
-                                "\n   - Run 'checkout <commitId> -f' to force checkout (WARNING: you will lose all untracked files).");
+                    }
+
+                    if(!untrackedFiles.isEmpty()) untracked = true;
+                    if(!modifiedFiles.isEmpty()) modified = true;
+
+                    Map<String, String> index = indexService.loadIndex(repoPath);
+                    if(!index.isEmpty()) {
+                        System.out.println("Checkout aborted: you have staged changes.");
+                        System.out.println("\nTip:"  +
+                                "\n   - Stage and commit changes to save current working directory." +
+                                "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                        return;
+                    }
+
+                    if(untracked || modified) {
+                        System.out.println("Checkout aborted: you have uncommitted changes in your working directory.");
+                        if(untracked) {
+                            System.out.println("\nUntracked files:");
+                            for (String path : untrackedFiles) {
+                                System.out.println("   - " + path);
+                            }
+                        }
+                        if(modified) {
+                            System.out.println("\nModified files:");
+                            for (String path : modifiedFiles) {
+                                System.out.println("   - " + path);
+                            }
+                        }
+                        System.out.println("\nTip:"  +
+                                "\n   - Stage and commit changes to save current working directory." +
+                                "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
                         return;
                     }
                 } catch (IOException e) {
