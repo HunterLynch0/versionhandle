@@ -2,6 +2,7 @@ package com.lynch.versionhandle.service;
 
 import com.lynch.versionhandle.model.Commit;
 import com.lynch.versionhandle.util.HashUtil;
+import com.lynch.versionhandle.util.IgnoreUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class CheckoutService {
                     }
 
                     String relativePath = repoPath.relativize(path).toString();
-                    if(relativePath.startsWith(".versionhandle")) {
+                    if(IgnoreUtil.shouldIgnore(relativePath)) {
                         continue;
                     }
 
@@ -90,7 +91,7 @@ public class CheckoutService {
                     }
 
                     String relativePath = repoPath.relativize(path).toString();
-                    if(relativePath.startsWith(".versionhandle")) {
+                    if(IgnoreUtil.shouldIgnore(relativePath)) {
                         continue;
                     }
 
@@ -124,7 +125,7 @@ public class CheckoutService {
                         }
 
                         String relativePath = repoPath.relativize(path).toString();
-                        if (relativePath.startsWith(".versionhandle")) {
+                        if (IgnoreUtil.shouldIgnore(relativePath)) {
                             continue;
                         }
 

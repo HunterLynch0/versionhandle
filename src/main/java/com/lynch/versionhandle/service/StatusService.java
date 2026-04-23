@@ -2,14 +2,12 @@ package com.lynch.versionhandle.service;
 
 import com.lynch.versionhandle.model.Commit;
 import com.lynch.versionhandle.util.HashUtil;
+import com.lynch.versionhandle.util.IgnoreUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StatusService {
 
@@ -49,7 +47,6 @@ public class StatusService {
             }
         } else {
             System.out.println("On branch " + currentBranch);
-
             if(headId == null) {
                 System.out.println("No commits.");
             } else {
@@ -60,10 +57,12 @@ public class StatusService {
 
         System.out.println();
 
+        List<String> untracked = new ArrayList<>();
         List<String> staged = new ArrayList<>();
         List<String> modified = new ArrayList<>();
-        List<String> untracked = new ArrayList<>();
         List<String> deleted = new ArrayList<>();
+
+        Set<String> workingSeen = new HashSet<>();
 
         try {
             for(Path path : Files.walk(repoPath).toList()) {
@@ -73,39 +72,71 @@ public class StatusService {
 
                 String relativePath = repoPath.relativize(path).toString();
 
-                if(relativePath.startsWith(".versionhandle")) {
+                if(IgnoreUtil.shouldIgnore(relativePath)) {
                     continue;
                 }
 
-                // Skip deleted
-                if(index.containsKey(relativePath) && index.get(relativePath).equals(DELETED));
+                workingSeen.add(relativePath);
 
-                String hash = HashUtil.sha256(Files.readAllBytes(path));
+                boolean inSnapshot = currentSnapshot.containsKey(relativePath);
+                boolean inIndex = index.containsKey(relativePath);
+
+                // Add to untracked - not in current or index
+                if(!inSnapshot && !inIndex) {
+                    untracked.add(relativePath);
+                    continue;
+                }
 
                 // Add to staged - in index but different file content than current file content
-                if(index.containsKey(relativePath) && !index.get(relativePath).equals(currentSnapshot.get(relativePath))) {
+                if(inIndex && !index.get(relativePath).equals(currentSnapshot.get(relativePath))) {
                     staged.add(relativePath);
                 }
 
                 // Add to modified - in index but working directory file content is different from index file content
-                if(index.containsKey(relativePath) && !hash.equals(index.get(relativePath))) {
-                    modified.add(relativePath);
+                String workingHash = HashUtil.sha256(Files.readAllBytes(path));
+                String indexHash = null;
+
+                if(inIndex && !index.get(relativePath).equals(DELETED)) {
+                    indexHash = index.get(relativePath);
+                } else if(inSnapshot) {
+                    indexHash = currentSnapshot.get(relativePath);
                 }
 
-                // Add to untracked - not in index or current
-                if(!index.containsKey(relativePath) && !currentSnapshot.containsKey(relativePath)) {
-                    untracked.add(relativePath);
+                if(indexHash != null && !workingHash.equals(indexHash)) {
+                    modified.add(relativePath);
+                }
+            }
+
+            // Find deleted files
+            Set<String> trackedOrStaged = new HashSet<>();
+            trackedOrStaged.addAll(currentSnapshot.keySet());
+            trackedOrStaged.addAll(index.keySet());
+
+            for(String fileName: trackedOrStaged) {
+                if(IgnoreUtil.shouldIgnore(fileName)) {
+                    continue;
+                }
+
+                boolean inWorking = workingSeen.contains(fileName);
+                boolean inSnapshot = currentSnapshot.containsKey(fileName);
+                boolean inIndex = index.containsKey(fileName);
+
+                // Staged deletion
+                if(inIndex && index.get(fileName).equals(DELETED)) {
+                    if(!staged.contains(fileName)) {
+                        staged.add(fileName);
+                    }
+                    continue;
+                }
+
+                // Unstaged deletion
+                if(inSnapshot && !inWorking) {
+                    deleted.add(fileName);
                 }
             }
 
         } catch(IOException e) {
             throw new RuntimeException("Failed to scan working directory", e);
-        }
-
-        for(Map.Entry<String, String> entry: index.entrySet()) {
-            if(entry.getValue().equals(DELETED)) {
-                deleted.add(entry.getKey());
-            }
         }
 
         // Print staged changes
@@ -114,14 +145,20 @@ public class StatusService {
             System.out.println("     <empty>");
         } else {
             for(String file: staged) {
-                System.out.println("   - " + file);
+                if(index.containsKey(file) && index.get(file).equals(DELETED)) {
+                    System.out.println("   - " + file + " (deleted)");
+                } else if(!currentSnapshot.containsKey(file)) {
+                    System.out.println("   - " + file + " (added)");
+                } else {
+                    System.out.println("   - " + file + " (modified)");
+                }
             }
         }
 
         System.out.println();
 
-        // Print changes not staged
-        System.out.println("Changes not staged:");
+        // Print modified files
+        System.out.println("Modified files:");
         if(modified.isEmpty()) {
             System.out.println("     <empty>");
         } else {
@@ -138,17 +175,6 @@ public class StatusService {
             System.out.println("     <empty>");
         } else {
             for(String file: untracked) {
-                System.out.println("   - " + file);
-            }
-        }
-        System.out.println();
-
-        // Print staged deletions
-        System.out.println("Staged deletions:");
-        if(deleted.isEmpty()) {
-            System.out.println("     <empty>");
-        } else {
-            for(String file : deleted) {
                 System.out.println("   - " + file);
             }
         }

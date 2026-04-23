@@ -1,6 +1,7 @@
 package com.lynch.versionhandle.service;
 
 import com.lynch.versionhandle.util.HashUtil;
+import com.lynch.versionhandle.util.IgnoreUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,11 +26,10 @@ public class AddService {
                 for(Path file: files) {
                     if(!Files.isRegularFile(file)) continue;
 
-                    String relativeName = repoPath.relativize(file).toString();
+                    String relativePath = repoPath.relativize(file).toString();
+                    if(IgnoreUtil.shouldIgnore(relativePath)) continue;
 
-                    if(relativeName.startsWith(".versionhandle")) continue;
-
-                    addSingleFile(repoPath, relativeName, counter2);
+                    addSingleFile(repoPath, relativePath, counter2);
                     counter2++;
                 }
 
