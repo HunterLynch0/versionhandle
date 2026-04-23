@@ -53,38 +53,38 @@ public class CheckoutService {
             return;
         }
 
-        if(targetBranch != null && targetCommit == null) {
-            try {
-                for(Path path: Files.walk(repoPath).toList()) {
-                    if(!Files.isRegularFile(path)) {
-                        continue;
-                    }
-
-                    String relativePath = repoPath.relativize(path).toString();
-                    if(IgnoreUtil.shouldIgnore(relativePath)) {
-                        continue;
-                    }
-
-                    Files.deleteIfExists(path);
-                }
-            } catch(IOException e) {
-                throw new RuntimeException("Failed to clear working directory for checking out empty branch.", e);
-            }
-
-            indexService.saveIndex(repoPath, new HashMap<>());
-            commitService.writeCurrent(repoPath, targetBranch);
-            commitService.writeHead(repoPath, null);
-
-            System.out.println("Checked out empty branch: " + targetBranch);
-            return;
-        }
-
         // Load target commit
         Commit target = commitService.loadCommit(repoPath, targetCommit);
 
         if(force) {
             // Remove all files in working directory that are not in target including untracked
             try {
+                if(targetBranch != null && targetCommit == null) {
+                    try {
+                        for(Path path: Files.walk(repoPath).toList()) {
+                            if(!Files.isRegularFile(path)) {
+                                continue;
+                            }
+
+                            String relativePath = repoPath.relativize(path).toString();
+                            if(IgnoreUtil.shouldIgnore(relativePath)) {
+                                continue;
+                            }
+
+                            Files.deleteIfExists(path);
+                        }
+                    } catch(IOException e) {
+                        throw new RuntimeException("Failed to clear working directory for checking out empty branch.", e);
+                    }
+
+                    indexService.saveIndex(repoPath, new HashMap<>());
+                    commitService.writeCurrent(repoPath, targetBranch);
+                    commitService.writeHead(repoPath, null);
+
+                    System.out.println("Checked out empty branch: " + targetBranch);
+                    return;
+                }
+
                 for(Path path : Files.walk(repoPath).toList()) {
                     if(!Files.isRegularFile(path)) {
                         continue;
@@ -112,8 +112,16 @@ public class CheckoutService {
             if(currentCommitId != null) {
                 Commit current = commitService.loadCommit(repoPath, currentCommitId);
 
-                // Check for untracked files
                 try {
+                    Map<String, String> index = indexService.loadIndex(repoPath);
+                    if(!index.isEmpty()) {
+                        System.out.println("Checkout aborted: you have staged changes.");
+                        System.out.println("\nTip:"  +
+                                "\n   - Stage and commit changes to save current working directory." +
+                                "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                        return;
+                    }
+
                     List<String> untrackedFiles = new ArrayList<>();
                     List<String> modifiedFiles = new ArrayList<>();
                     boolean untracked = false;
@@ -151,9 +159,20 @@ public class CheckoutService {
                     if(!untrackedFiles.isEmpty()) untracked = true;
                     if(!modifiedFiles.isEmpty()) modified = true;
 
-                    Map<String, String> index = indexService.loadIndex(repoPath);
-                    if(!index.isEmpty()) {
-                        System.out.println("Checkout aborted: you have staged changes.");
+                    if(targetBranch != null && targetCommit == null) {
+                        System.out.println("Checkout aborted: you have uncommitted changes in your working directory.");
+                        if(untracked) {
+                            System.out.println("\nUntracked files:");
+                            for (String path : untrackedFiles) {
+                                System.out.println("   - " + path);
+                            }
+                        }
+                        if(modified) {
+                            System.out.println("\nModified files:");
+                            for (String path : modifiedFiles) {
+                                System.out.println("   - " + path);
+                            }
+                        }
                         System.out.println("\nTip:"  +
                                 "\n   - Stage and commit changes to save current working directory." +
                                 "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
