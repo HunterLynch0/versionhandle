@@ -9,6 +9,7 @@ public class IgnoreUtil {
      */
     public static boolean shouldIgnore(String relativePath) {
         return relativePath.startsWith(".versionhandle")
+                || relativePath.startsWith(".git")
                 || relativePath.startsWith(".idea")
                 || relativePath.startsWith("target")
                 || relativePath.startsWith("out")
