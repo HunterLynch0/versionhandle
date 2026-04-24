@@ -131,8 +131,22 @@ public class CheckoutService {
                 }
             }
 
-            // Force
-            clearWorking(repoPath);
+            try {
+                for(Path path: Files.walk(repoPath).toList()) {
+                    if(!Files.isRegularFile(path)) {
+                        continue;
+                    }
+
+                    String relativePath = repoPath.relativize(path).toString();
+                    if(IgnoreUtil.shouldIgnore(relativePath)) {
+                        continue;
+                    }
+
+                    Files.deleteIfExists(path);
+                }
+            } catch(IOException e) {
+                throw new RuntimeException("Failed to clear working directory.");
+            }
 
             indexService.saveIndex(repoPath, new HashMap<>());
             commitService.writeCurrent(repoPath, targetBranch);
@@ -278,28 +292,5 @@ public class CheckoutService {
 
         System.out.println("Checked out: " + targetName);
 
-    }
-
-    /**
-     * Clear working directory
-     * @param repoPath project root repository
-     */
-    public void clearWorking(Path repoPath) {
-        try {
-            for(Path path: Files.walk(repoPath).toList()) {
-                if(!Files.isRegularFile(path)) {
-                    continue;
-                }
-
-                String relativePath = repoPath.relativize(path).toString();
-                if(IgnoreUtil.shouldIgnore(relativePath)) {
-                    continue;
-                }
-
-                Files.deleteIfExists(path);
-            }
-        } catch(IOException e) {
-            throw new RuntimeException("Failed to clear working directory.");
-        }
     }
 }
