@@ -66,9 +66,9 @@ public class CommitService {
         }
 
         // Create the content first to get the hash for the actual commit, then create the commit with the created commitId
-        String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, snapshot));
+        String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, null, snapshot));
         String commitId = HashUtil.sha256(commitContent.getBytes());
-        Commit commit = new Commit(commitId, message, timestamp, parentId, snapshot);
+        Commit commit = new Commit(commitId, message, timestamp, parentId, null, snapshot);
 
         // Finalise the commit
         saveCommit(repoPath, commit);
@@ -95,6 +95,7 @@ public class CommitService {
         String message;
         String timestamp;
         String parentId;
+        String secondParentId = null;
         Map<String, String> snapshot = new HashMap<>();
 
         try (Scanner fileScan = new Scanner(commitPath.toFile())) {
@@ -102,7 +103,12 @@ public class CommitService {
             timestamp = fileScan.nextLine().replaceFirst("Timestamp: ", "");
             parentId = fileScan.nextLine().replaceFirst("Parent: ", "");
             if(parentId.equals("null")) parentId = null;
-            fileScan.nextLine();
+
+            String line = fileScan.nextLine();
+            if(line.startsWith("Parent2: ")) {
+                secondParentId = line.replaceFirst("Parent2: ", "");
+                fileScan.nextLine();
+            }
 
             while(fileScan.hasNextLine()) {
                 String[] parts = fileScan.nextLine().split(" ");
@@ -112,7 +118,7 @@ public class CommitService {
             throw new RuntimeException("Failed to load Commit", e);
         }
 
-        return new Commit(commitId, message, timestamp, parentId, snapshot);
+        return new Commit(commitId, message, timestamp, parentId, secondParentId, snapshot);
     }
 
     /**
@@ -142,7 +148,11 @@ public class CommitService {
 
         commitContent.append("Message: ").append(commit.getMessage()).append("\n");
         commitContent.append("Timestamp: ").append(commit.getTimestamp()).append("\n");
-        commitContent.append("Parent: ").append(commit.getParentId()).append("\n\n");
+        commitContent.append("Parent: ").append(commit.getParentId()).append("\n");
+        if(commit.getSecondParentId() != null) {
+            commitContent.append("Parent2: ").append(commit.getSecondParentId()).append("\n");
+        }
+        commitContent.append("\n");
 
         for(Map.Entry<String, String> entry: commit.getSnapshot().entrySet()) {
             commitContent.append(entry.getKey()).append(" ").append(entry.getValue()).append("\n");
