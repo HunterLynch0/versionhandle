@@ -71,7 +71,6 @@ public class CheckoutService {
                         List<String> untracked = new ArrayList<>();
                         List<String> modified = new ArrayList<>();
 
-                        // Files modified - current content different from working content
                         for(Path path: Files.walk(repoPath).toList()) {
                             if(!Files.isRegularFile(path)) {
                                 continue;
@@ -82,6 +81,7 @@ public class CheckoutService {
                                 continue;
                             }
 
+                            // Files untracked - in working directory but not in current commit
                             if(!current.getSnapshot().containsKey(relativePath)) {
                                 untracked.add(relativePath);
                                 continue;
@@ -90,6 +90,7 @@ public class CheckoutService {
                             String currentHash = current.getSnapshot().get(relativePath);
                             String workingHash = HashUtil.sha256(Files.readAllBytes(path));
 
+                            // Files modified - current content different from working content
                             if(!currentHash.equals(workingHash)) {
                                 modified.add(relativePath);
                             }
@@ -207,6 +208,7 @@ public class CheckoutService {
                             continue;
                         }
 
+                        // Files untracked - in working directory but not in current commit
                         if(!current.getSnapshot().containsKey(relativePath)) {
                             untracked.add(relativePath);
                             continue;
@@ -215,11 +217,13 @@ public class CheckoutService {
                         String currentHash = current.getSnapshot().get(relativePath);
                         String workingHash = HashUtil.sha256(Files.readAllBytes(path));
 
+                        // Files modified - current content different from working content
                         if(!currentHash.equals(workingHash)) {
                             modified.add(relativePath);
                         }
                     }
 
+                    // Files deleted - in current snapshot but no in working
                     for(Map.Entry<String, String> entry : current.getSnapshot().entrySet()) {
                         if(!Files.exists(repoPath.resolve(entry.getKey()))) {
                             modified.add(entry.getKey() + " (deleted locally)");
