@@ -7,9 +7,7 @@ import com.lynch.versionhandle.util.IgnoreUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MergeService {
 
@@ -57,9 +55,8 @@ public class MergeService {
             return;
         }
 
-        // Load commits
+        // Load commit
         Commit current = commitService.loadCommit(repoPath, currentCommitId);
-        Commit target = commitService.loadCommit(repoPath, targetCommitId);
 
         // Check working directory for untracked or modified files
         try {
@@ -121,5 +118,35 @@ public class MergeService {
         } catch(IOException e) {
             throw new RuntimeException("Failed to loop through working directory.", e);
         }
+
+        // Load target and ancestor
+        Commit target = commitService.loadCommit(repoPath, targetCommitId);
+        String ancestorId = findCommonAncestor(repoPath, currentCommitId, targetCommitId);
+        if(ancestorId != null) {
+            Commit ancestor = commitService.loadCommit(repoPath, ancestorId);
+        }
+
+    }
+
+    public String findCommonAncestor(Path repoPath, String commitId1, String commitId2) {
+        CommitService commitService = new CommitService();
+        Set<String> commitIds = new HashSet<>();
+
+        while(commitId1 != null) {
+            commitIds.add(commitId1);
+
+            Commit commit = commitService.loadCommit(repoPath, commitId1);
+            commitId1 = commit.getParentId();
+        }
+
+        while(commitId2 != null) {
+            if(commitIds.contains(commitId2)) {
+                return commitId2;
+            }
+            Commit commit = commitService.loadCommit(repoPath, commitId2);
+            commitId2 = commit.getParentId();
+        }
+
+        return null;
     }
 }
