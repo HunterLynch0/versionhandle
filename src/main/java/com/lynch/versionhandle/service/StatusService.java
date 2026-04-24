@@ -166,7 +166,6 @@ public class StatusService {
                 System.out.println("   - " + file);
             }
         }
-
         System.out.println();
 
         // Print untracked files
@@ -175,6 +174,17 @@ public class StatusService {
             System.out.println("     <empty>");
         } else {
             for(String file: untracked) {
+                System.out.println("   - " + file);
+            }
+        }
+        System.out.println();
+
+        // Print unstaged deletions
+        System.out.println("Deleted files:");
+        if(deleted.isEmpty()) {
+            System.out.println("     <empty>");
+        } else {
+            for(String file: deleted) {
                 System.out.println("   - " + file);
             }
         }
