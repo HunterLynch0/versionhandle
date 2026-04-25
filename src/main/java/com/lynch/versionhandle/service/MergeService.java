@@ -15,29 +15,30 @@ public class MergeService {
 
         // Check project is initialised
         Path vhPath = repoPath.resolve(".versionhandle");
-        if(!Files.exists(vhPath)) {
+        if (!Files.exists(vhPath)) {
             System.out.println("Not a versionhandle repository. Initialise project first.");
             return;
         }
 
         CommitService commitService = new CommitService();
+        IndexService indexService = new IndexService();
 
         // Check user is on branch
         String currentBranch = commitService.readCurrent(repoPath);
-        if(currentBranch == null) {
+        if (currentBranch == null) {
             System.out.println("Error: operation not available in detached HEAD state.");
             return;
         }
 
         // Check target branch exists
         Path targetBranchPath = vhPath.resolve("branches").resolve(targetName);
-        if(!Files.exists(targetBranchPath)) {
+        if (!Files.exists(targetBranchPath)) {
             System.out.println("Error: branch not found: " + targetName);
             return;
         }
 
         // Check target is not the current branch
-        if(currentBranch.equals(targetName)) {
+        if (currentBranch.equals(targetName)) {
             System.out.println("Error: cannot merge branch '" + currentBranch + "' into itself.");
             return;
         }
@@ -46,11 +47,11 @@ public class MergeService {
         String targetCommitId = commitService.readBranch(repoPath, targetName);
 
         // Check branches have commits
-        if(currentCommitId == null && targetCommitId == null) {
+        if (currentCommitId == null && targetCommitId == null) {
             System.out.println("Error: neither branches '" + currentBranch + "' or '" + targetName + "' have commits.");
             return;
         }
-        if(currentCommitId == null || targetCommitId == null) {
+        if (currentCommitId == null || targetCommitId == null) {
             System.out.println("Error: branch '" + (currentCommitId == null ? currentBranch : targetName) + "' has no commits.");
             return;
         }
@@ -63,18 +64,18 @@ public class MergeService {
             List<String> untracked = new ArrayList<>();
             List<String> modified = new ArrayList<>();
 
-            for(Path path: Files.walk(repoPath).toList()) {
-                if(!Files.isRegularFile(path)) {
+            for (Path path : Files.walk(repoPath).toList()) {
+                if (!Files.isRegularFile(path)) {
                     continue;
                 }
 
                 String relativePath = repoPath.relativize(path).toString();
-                if(IgnoreUtil.shouldIgnore(relativePath)) {
+                if (IgnoreUtil.shouldIgnore(relativePath)) {
                     continue;
                 }
 
                 // Files untracked - in working directory but not in current commit
-                if(!current.getSnapshot().containsKey(relativePath)) {
+                if (!current.getSnapshot().containsKey(relativePath)) {
                     untracked.add(relativePath);
                     continue;
                 }
@@ -83,68 +84,177 @@ public class MergeService {
                 String workingHash = HashUtil.sha256(Files.readAllBytes(path));
 
                 // Files modified - current content different from working content
-                if(!currentHash.equals(workingHash)) {
+                if (!currentHash.equals(workingHash)) {
                     modified.add(relativePath);
                 }
             }
 
             // Files deleted - in current snapshot but no in working
-            for(Map.Entry<String, String> entry: current.getSnapshot().entrySet()) {
-                if(!Files.exists(repoPath.resolve(entry.getKey()))) {
+            for (Map.Entry<String, String> entry : current.getSnapshot().entrySet()) {
+                if (!Files.exists(repoPath.resolve(entry.getKey()))) {
                     modified.add(entry.getKey() + " (deleted locally)");
                 }
             }
 
+            // Abort merge if there are staged changes
+            Map<String, String> index = indexService.loadIndex(repoPath);
+            if (!index.isEmpty()) {
+                System.out.println("Checkout aborted: you have staged changes.");
+                System.out.println("\nTip:" +
+                        "\n   - Stage and commit changes to save current working directory." +
+                        "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                return;
+            }
+
             // Abort merge if there are untracked or modified files
-            if(!untracked.isEmpty() || !modified.isEmpty()) {
+            if (!untracked.isEmpty() || !modified.isEmpty()) {
                 System.out.println("Merge aborted: you have uncommitted changes in your working directory.");
-                if(!untracked.isEmpty()) {
+                if (!untracked.isEmpty()) {
                     System.out.println("\nUntracked files:");
                     for (String path : untracked) {
                         System.out.println("   - " + path);
                     }
                 }
-                if(!modified.isEmpty()) {
+                if (!modified.isEmpty()) {
                     System.out.println("\nModified files:");
-                    for (String path: modified) {
+                    for (String path : modified) {
                         System.out.println("   - " + path);
                     }
                 }
-                System.out.println("\nTip:"  +
-                        "\n   - Stage and commit changes to save current working directory." +
-                        "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                System.out.println("\nTip:" +
+                        "\n   - Stage and commit changes to save current working directory.");
                 return;
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Failed to loop through working directory.", e);
         }
 
-        // Load target and ancestor
+        // Load commits + snapshots
         Commit target = commitService.loadCommit(repoPath, targetCommitId);
+        Commit ancestor = null;
         String ancestorId = findCommonAncestor(repoPath, currentCommitId, targetCommitId);
-        if(ancestorId != null) {
-            Commit ancestor = commitService.loadCommit(repoPath, ancestorId);
+        if (ancestorId != null) {
+            ancestor = commitService.loadCommit(repoPath, ancestorId);
+        }
+        Map<String, String> ancestorSnapshot = ancestor == null ? new HashMap<>() : ancestor.getSnapshot();
+        Map<String, String> currentSnapshot = current.getSnapshot();
+        Map<String, String> targetSnapshot = target.getSnapshot();
+
+        // Get all files
+        Set<String> files = new HashSet<>();
+        files.addAll(ancestorSnapshot.keySet());
+        files.addAll(currentSnapshot.keySet());
+        files.addAll(targetSnapshot.keySet());
+
+        Map<String, String> mergedSnapshot = new HashMap<>(currentSnapshot);
+        List<String> conflicts = new ArrayList<>();
+
+        // Sort files depending on their difference between snapshots
+        for(String file: files) {
+            String baseHash = ancestorSnapshot.get(file);
+            String currentHash = currentSnapshot.get(file);
+            String targetHash = targetSnapshot.get(file);
+
+            if(Objects.equals(currentHash, targetHash)) {
+                mergedSnapshot.put(file, currentSnapshot.get(file));
+            } else if(Objects.equals(baseHash, currentHash)) {
+                if(targetHash == null) {
+                    mergedSnapshot.remove(file);
+                } else {
+                    mergedSnapshot.put(file, targetHash);
+                }
+            } else if(Objects.equals(baseHash, targetHash)) {
+                mergedSnapshot.put(file, currentHash);
+            } else {
+                conflicts.add(file);
+            }
         }
 
+        if(!conflicts.isEmpty()) {
+            // handle conflicts
+            return;
+        } else {
+            // Rewrite working directory to merged
+            try {
+                for(Path path: Files.walk(repoPath).toList()) {
+                    if(!Files.isRegularFile(path)) {
+                        continue;
+                    }
+
+                    String relativePath = repoPath.relativize(path).toString();
+                    if(IgnoreUtil.shouldIgnore(relativePath)) {
+                        continue;
+                    }
+
+                    if(!mergedSnapshot.containsKey(relativePath)) {
+                        Files.deleteIfExists(path);
+                        continue;
+                    }
+
+                    String currentHash = HashUtil.sha256(Files.readAllBytes(path));
+                    String mergedHash = mergedSnapshot.get(relativePath);
+
+                    if(!currentHash.equals(mergedHash)) {
+                        Path objectPath = vhPath.resolve("objects").resolve(mergedHash);
+                        Files.write(path, Files.readAllBytes(objectPath));
+                    }
+                }
+            } catch(IOException e) {
+                throw new RuntimeException("Failed to loop through working directory");
+            }
+
+            // Write missing files from working
+            for(String file: mergedSnapshot.keySet()) {
+
+            }
+        }
     }
 
-    public String findCommonAncestor(Path repoPath, String commitId1, String commitId2) {
+    public String findCommonAncestor(Path repoPath, String currentId, String targetId) {
+
         CommitService commitService = new CommitService();
-        Set<String> commitIds = new HashSet<>();
 
-        while(commitId1 != null) {
-            commitIds.add(commitId1);
+        Set<String> currentAncestors = new HashSet<>();
+        Set<String> visited = new HashSet<>();
+        Stack<String> stack = new Stack<>();
 
-            Commit commit = commitService.loadCommit(repoPath, commitId1);
-            commitId1 = commit.getParentId();
+        // Get all current ancestors
+        stack.push(currentId);
+        while(!stack.isEmpty()) {
+            String commitId = stack.pop();
+
+            if(commitId == null || visited.contains(commitId)) {
+                continue;
+            }
+
+            visited.add(commitId);
+            currentAncestors.add(commitId);
+
+            Commit commit = commitService.loadCommit(repoPath, commitId);
+            stack.push(commit.getParentId());
+            stack.push(commit.getSecondParentId());
         }
 
-        while(commitId2 != null) {
-            if(commitIds.contains(commitId2)) {
-                return commitId2;
+        // Find the lowest common ancestor in target
+        visited.clear();
+        stack.push(targetId);
+
+        while(!stack.isEmpty()) {
+            String commitId = stack.pop();
+
+            if(commitId == null || visited.contains(commitId)) {
+                continue;
             }
-            Commit commit = commitService.loadCommit(repoPath, commitId2);
-            commitId2 = commit.getParentId();
+
+            if(currentAncestors.contains(commitId)) {
+                return commitId;
+            }
+
+            visited.add(commitId);
+
+            Commit commit = commitService.loadCommit(repoPath, commitId);
+            stack.push(commit.getParentId());
+            stack.push(commit.getSecondParentId());
         }
 
         return null;
