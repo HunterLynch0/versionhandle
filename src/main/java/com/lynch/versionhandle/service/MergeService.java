@@ -175,10 +175,12 @@ public class MergeService {
         }
 
         if(!conflicts.isEmpty()) {
-            System.out.println("Merge aborted: conflict in:");
+            System.out.println("Merge aborted: conflicting file content");
+            System.out.println("Merge conflicts in: ");
             for(String file: conflicts) {
                 System.out.println("   - "  + file);
             }
+            System.out.println("\nTip: Fix conflicts, then stage and commit the resolved files.");
             return;
         } else {
             // Rewrite working directory to merged

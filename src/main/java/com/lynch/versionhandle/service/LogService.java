@@ -37,13 +37,11 @@ public class LogService {
 
         // Basic info before log
         if(currentBranch == null) {
-            System.out.println("Note:" +
-                    "\n   - Detached HEAD at " + commitId +
+            System.out.println("Detached HEAD at " + commitId +
                     "\n   - Commits are listed descending from HEAD." +
                     "\n   - To log all commits run 'log -a'\n");
         } else {
-            System.out.println("Note:" +
-                    "\n   - On branch " + currentBranch +
+            System.out.println("On branch " + currentBranch +
                     "\n   - Commits are listed descending from HEAD." +
                     "\n   - To log all commits run 'log -a'\n");
         }
@@ -91,6 +89,18 @@ public class LogService {
             }
 
             commits.sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()));
+
+            // Basic info before log
+            String currentBranch = commitService.readCurrent(repoPath);
+            String commitId = commitService.readHead(repoPath);
+
+            if(currentBranch == null) {
+                System.out.println("Detached HEAD at " + commitId +
+                        "\n   - Commits are listed descending from newest to oldest.");
+            } else {
+                System.out.println("On branch " + currentBranch +
+                        "\n   - Commits are listed descending from newest to oldest.");
+            }
 
             // Print contents
             for(Commit commit: commits) {
