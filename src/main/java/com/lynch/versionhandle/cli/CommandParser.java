@@ -30,7 +30,7 @@ public class CommandParser {
                     for(int i = 1; i < args.length; i++) {
                         System.out.print(args[i] + " ");
                     }
-                    System.out.println("Tip: run help to list valid command usage.");
+                    System.out.println("\nTip: run help to list valid command usage.");
                     return;
                 }
                 printHelp();
@@ -41,7 +41,7 @@ public class CommandParser {
                     for(int i = 1; i < args.length; i++) {
                         System.out.print(args[i] + " ");
                     }
-                    System.out.println("Tip: run help to list valid command usage.");
+                    System.out.println("\nTip: run help to list valid command usage.");
                     return;
                 }
                 new RepositoryService().init(repoPath);
@@ -83,7 +83,7 @@ public class CommandParser {
                     for(int i = 1; i < args.length; i++) {
                         System.out.print(args[i] + " ");
                     }
-                    System.out.println("Tip: run help to list valid command usage.");
+                    System.out.println("\nTip: run help to list valid command usage.");
                 }
                 break;
 
@@ -112,7 +112,7 @@ public class CommandParser {
                     for(int i = 1; i < args.length; i++) {
                         System.out.print(args[i] + " ");
                     }
-                    System.out.println("Tip: run help to list valid command usage.");
+                    System.out.println("\nTip: run help to list valid command usage.");
                     return;
                 }
                 new StatusService().status(repoPath);
@@ -146,6 +146,23 @@ public class CommandParser {
                 }
                 break;
 
+            case "merge":
+                if(args.length == 1) {
+                    System.out.println("Error: no target branch provided." +
+                            "\nTip: run help to list valid command usage.");
+                    return;
+                } else if(args.length > 2) {
+                    System.out.print("Error: unknown additional arguments): ");
+                    for(int i = 1; i < args.length; i++) {
+                        System.out.print(args[i] + " ");
+                    }
+                    System.out.println("\nTip: run help to list valid command usage.");
+                    return;
+                } else {
+                    new MergeService().merge(repoPath, args[1]);
+                }
+                break;
+
             default:
                 System.out.println("Invalid command: " + command +
                         "\nTip: run 'help' list valid command usage.");
@@ -165,6 +182,7 @@ public class CommandParser {
         System.out.println("   status");
         System.out.println("   checkout <commitId|branchName> [-f]");
         System.out.println("   branch <branchName>");
+        System.out.println("   merge <branchName>");
         System.out.println("   help");
     }
 }

@@ -160,6 +160,29 @@ public class CommitService {
         return commitContent.toString();
     }
 
+    /**
+     * Creates a merge commit (two parents)
+     * @param repoPath project root repository
+     * @param message commit message
+     * @param parentId parent's commitId
+     * @param secondParentId second parent's commit it
+     * @param snapshot commit's snapshot
+     * @return commitId
+     */
+    public String mergeCommit(Path repoPath, String message, String parentId, String secondParentId, Map<String, String> snapshot) {
+        // Get timestamp
+        String timestamp = LocalDateTime.now().toString();
+
+        // Create the content first to get the hash for the actual commit, then create the commit with the created commitId
+        String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, secondParentId, snapshot));
+        String commitId = HashUtil.sha256(commitContent.getBytes());
+
+        Commit commit = new Commit(commitId, message, timestamp, parentId, secondParentId, snapshot);
+        saveCommit(repoPath, commit);
+
+        return commitId;
+    }
+
 
     /**
      * Reads CURRENT branch name

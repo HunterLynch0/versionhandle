@@ -11,6 +11,11 @@ import java.util.*;
 
 public class MergeService {
 
+    /**
+     * Merge target branch into current branch
+     * @param repoPath project root repository
+     * @param targetName branch to be merged into current
+     */
     public void merge(Path repoPath, String targetName) {
 
         // Check project is initialised
@@ -56,6 +61,15 @@ public class MergeService {
             return;
         }
 
+        // Abort merge if there are staged changes
+        Map<String, String> index = indexService.loadIndex(repoPath);
+        if (!index.isEmpty()) {
+            System.out.println("Merge aborted: you have staged changes.");
+            System.out.println("\nTip:" +
+                    "\n   - Stage and commit changes to save current working directory.");
+            return;
+        }
+
         // Load commit
         Commit current = commitService.loadCommit(repoPath, currentCommitId);
 
@@ -94,16 +108,6 @@ public class MergeService {
                 if (!Files.exists(repoPath.resolve(entry.getKey()))) {
                     modified.add(entry.getKey() + " (deleted locally)");
                 }
-            }
-
-            // Abort merge if there are staged changes
-            Map<String, String> index = indexService.loadIndex(repoPath);
-            if (!index.isEmpty()) {
-                System.out.println("Checkout aborted: you have staged changes.");
-                System.out.println("\nTip:" +
-                        "\n   - Stage and commit changes to save current working directory." +
-                        "\n   - Run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
-                return;
             }
 
             // Abort merge if there are untracked or modified files
@@ -146,7 +150,7 @@ public class MergeService {
         files.addAll(currentSnapshot.keySet());
         files.addAll(targetSnapshot.keySet());
 
-        Map<String, String> mergedSnapshot = new HashMap<>(currentSnapshot);
+        Map<String, String> mergeSnapshot = new HashMap<>(currentSnapshot);
         List<String> conflicts = new ArrayList<>();
 
         // Sort files depending on their difference between snapshots
@@ -156,22 +160,25 @@ public class MergeService {
             String targetHash = targetSnapshot.get(file);
 
             if(Objects.equals(currentHash, targetHash)) {
-                mergedSnapshot.put(file, currentSnapshot.get(file));
+                mergeSnapshot.put(file, currentSnapshot.get(file));
             } else if(Objects.equals(baseHash, currentHash)) {
                 if(targetHash == null) {
-                    mergedSnapshot.remove(file);
+                    mergeSnapshot.remove(file);
                 } else {
-                    mergedSnapshot.put(file, targetHash);
+                    mergeSnapshot.put(file, targetHash);
                 }
             } else if(Objects.equals(baseHash, targetHash)) {
-                mergedSnapshot.put(file, currentHash);
+                mergeSnapshot.put(file, currentHash);
             } else {
                 conflicts.add(file);
             }
         }
 
         if(!conflicts.isEmpty()) {
-            // handle conflicts
+            System.out.println("Merge aborted: conflict in:");
+            for(String file: conflicts) {
+                System.out.println("   - "  + file);
+            }
             return;
         } else {
             // Rewrite working directory to merged
@@ -186,32 +193,63 @@ public class MergeService {
                         continue;
                     }
 
-                    if(!mergedSnapshot.containsKey(relativePath)) {
+                    if(!mergeSnapshot.containsKey(relativePath)) {
                         Files.deleteIfExists(path);
                         continue;
                     }
 
                     String currentHash = HashUtil.sha256(Files.readAllBytes(path));
-                    String mergedHash = mergedSnapshot.get(relativePath);
+                    String mergedHash = mergeSnapshot.get(relativePath);
 
-                    if(!currentHash.equals(mergedHash)) {
+                    if(!Objects.equals(currentHash, mergedHash)) {
                         Path objectPath = vhPath.resolve("objects").resolve(mergedHash);
                         Files.write(path, Files.readAllBytes(objectPath));
                     }
                 }
             } catch(IOException e) {
-                throw new RuntimeException("Failed to loop through working directory");
+                throw new RuntimeException("Failed to loop through working directory", e);
             }
 
-            // Write missing files from working
-            for(String file: mergedSnapshot.keySet()) {
+            // Create missing files from working
+            for(String file: mergeSnapshot.keySet()) {
+                Path filePath = repoPath.resolve(file);
 
+                if(!Files.exists(filePath)) {
+                    String objectHash = mergeSnapshot.get(file);
+                    Path objectPath = vhPath.resolve("objects").resolve(objectHash);
+
+                    try {
+                        if(filePath.getParent() != null) {
+                            Files.createDirectories(filePath.getParent());
+                        }
+                        Files.write(filePath, Files.readAllBytes(objectPath));
+                    } catch(IOException e) {
+                        throw new RuntimeException("Failed to create and write file: " + filePath);
+                    }
+                }
             }
+
+            // Commit merge
+            String message = "Merge branch '" + targetName + "' into '" +  currentBranch + "'";
+            String mergeCommitId = commitService.mergeCommit(repoPath, message, currentCommitId, targetCommitId, mergeSnapshot);
+
+            indexService.saveIndex(repoPath, new HashMap<>());
+            commitService.writeBranch(repoPath, currentBranch, mergeCommitId);
+            commitService.writeHead(repoPath, mergeCommitId);
+
+            System.out.println("Merged branch '" + targetName + "' into '" +  currentBranch + "'");
+            System.out.println("commitId: " + mergeCommitId);
         }
     }
 
+    /**
+     * Finds the most recent common ancestor between to commits
+     * @param repoPath project root repository
+     * @param currentId commitId1
+     * @param targetId commitId2
+     * @return commitId of common ancestor or null is there is none
+     */
     public String findCommonAncestor(Path repoPath, String currentId, String targetId) {
-
         CommitService commitService = new CommitService();
 
         Set<String> currentAncestors = new HashSet<>();
