@@ -108,6 +108,9 @@ public class LogService {
                 System.out.println("Message: " + commit.getMessage());
                 System.out.println("Timestamp: " + commit.getTimestamp());
                 System.out.println("Parent: " + commit.getParentId());
+                if(commit.getSecondParentId() != null) {
+                    System.out.println("Parent2: " + commit.getSecondParentId());
+                }
                 System.out.println();
             }
         } catch(IOException e) {
