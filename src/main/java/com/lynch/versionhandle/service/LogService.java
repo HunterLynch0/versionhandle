@@ -49,12 +49,7 @@ public class LogService {
         // Print commit chain starting from CURRENT
         while(commitId != null) {
             Commit commit = commitService.loadCommit(repoPath, commitId);
-
-            System.out.println("commit " + commit.getId());
-            System.out.println("Message: " + commit.getMessage());
-            System.out.println("Timestamp: " + commit.getTimestamp());
-            System.out.println("Parent: " + commit.getParentId());
-            System.out.println();
+            printCommit(commit);
 
             commitId = commit.getParentId();
         }
@@ -104,17 +99,21 @@ public class LogService {
 
             // Print contents
             for(Commit commit: commits) {
-                System.out.println("commit " + commit.getId());
-                System.out.println("Message: " + commit.getMessage());
-                System.out.println("Timestamp: " + commit.getTimestamp());
-                System.out.println("Parent: " + commit.getParentId());
-                if(commit.getSecondParentId() != null) {
-                    System.out.println("Parent2: " + commit.getSecondParentId());
-                }
-                System.out.println();
+                printCommit(commit);
             }
         } catch(IOException e) {
             throw new RuntimeException("Failed to fetch commits", e);
         }
+    }
+
+    public void printCommit(Commit commit) {
+        System.out.println("commit " + commit.getId());
+        System.out.println("Message: " + commit.getMessage());
+        System.out.println("Timestamp: " + commit.getTimestamp());
+        System.out.println("Parent: " + commit.getParentId());
+        if(commit.getSecondParentId() != null) {
+            System.out.println("Parent2: " + commit.getSecondParentId());
+        }
+        System.out.println();
     }
 }
