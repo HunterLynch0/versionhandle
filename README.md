@@ -20,7 +20,7 @@ A lightweight version control system built from scratch (inspired by git).
 ### One-line install
 
 ```bash
-curl -L https://github.com/YOUR_USERNAME/versionhandle/releases/download/v1.0.0/install.sh | bash
+curl -L https://github.com/HunterLynch0/versionhandle/releases/download/v1.0.0/install.sh | bash
 ```
 
 Then restart your terminal or run:
