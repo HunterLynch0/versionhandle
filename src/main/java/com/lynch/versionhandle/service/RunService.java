@@ -1,10 +1,13 @@
 package com.lynch.versionhandle.service;
 
+import com.lynch.versionhandle.cli.CommandParser;
 import com.lynch.versionhandle.model.Commit;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -80,15 +83,24 @@ public class RunService {
             int exitCode = process.waitFor();
 
             System.out.println("Process exited with code: " + exitCode);
-        } catch(IOException | InterruptedException e) {
+        } catch(InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Command interrupted.", e);
+        } catch(IOException e) {
             throw new RuntimeException("Failed to run command.", e);
         }
 
         // Clear tempDir
         try {
-            for(Path path: Files.walk(tempDir).toList()) {
+            List<Path> paths = new ArrayList<>(Files.walk(tempDir).toList());
+
+            // sort in reverse (files before directories)
+            paths.sort(Comparator.reverseOrder());
+
+            for(Path path : paths) {
                 Files.deleteIfExists(path);
             }
+
         } catch(IOException e) {
             throw new RuntimeException("Failed to clear temporary directory.", e);
         }
