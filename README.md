@@ -26,8 +26,11 @@ curl -L https://github.com/HunterLynch0/versionhandle/releases/download/v1.0.0/i
 Then restart your terminal or run:
 
 ```bash
-source ~/.zshrc (zsh terminal)
-source ~/.bashrc (bash terminal)
+# If you're using zsh (macOS default)
+source ~/.zshrc
+
+# If you're using bash (most Linux systems)
+source ~/.bashrc
 ```
 
 Depending on terminal config
