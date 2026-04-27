@@ -3,7 +3,7 @@
 mkdir -p "$HOME/.versionhandle/bin"
 
 curl -L -o "$HOME/.versionhandle/versionhandle.jar" \
-https://github.com/YOUR_USERNAME/versionhandle/releases/download/v1.0.0/versionhandle.jar
+https://github.com/HunterLynch0/versionhandle/releases/download/v1.0.0/versionhandle.jar
 
 cat > "$HOME/.versionhandle/bin/vh" << 'EOF'
 #!/bin/bash
@@ -21,7 +21,10 @@ else
     CONFIG="$HOME/.profile"
 fi
 
-echo 'export PATH="$HOME/.versionhandle/bin:$PATH"' >> "$CONFIG"
+# Add vh to PATH if not already added
+if ! grep -q '.versionhandle/bin' "$CONFIG"; then
+    echo 'export PATH="$HOME/.versionhandle/bin:$PATH"' >> "$CONFIG"
+fi
 
 echo "Installed vh."
 echo "Run this to activate:"
