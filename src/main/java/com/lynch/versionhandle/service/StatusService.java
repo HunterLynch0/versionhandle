@@ -55,8 +55,6 @@ public class StatusService {
             }
         }
 
-        System.out.println();
-
         List<String> untracked = new ArrayList<>();
         List<String> staged = new ArrayList<>();
         List<String> modified = new ArrayList<>();
@@ -139,55 +137,58 @@ public class StatusService {
             throw new RuntimeException("Failed to scan working directory", e);
         }
 
-        // Print staged changes
-        System.out.println("Staged changes:");
-        if(staged.isEmpty()) {
-            System.out.println("     <empty>");
+        if(staged.isEmpty() && modified.isEmpty() && untracked.isEmpty() && deleted.isEmpty()) {
+            System.out.println("Everything up to date.");
         } else {
-            for(String file: staged) {
-                if(index.containsKey(file) && index.get(file).equals(DELETED)) {
-                    System.out.println("   - " + file + " (deleted)");
-                } else if(!currentSnapshot.containsKey(file)) {
-                    System.out.println("   - " + file + " (added)");
-                } else {
-                    System.out.println("   - " + file + " (modified)");
+            // Print staged changes
+            System.out.println("Staged changes:");
+            if(staged.isEmpty()) {
+                System.out.println("     <empty>");
+            } else {
+                for(String file: staged) {
+                    if(index.containsKey(file) && index.get(file).equals(DELETED)) {
+                        System.out.println("   - " + file + " (deleted)");
+                    } else if(!currentSnapshot.containsKey(file)) {
+                        System.out.println("   - " + file + " (added)");
+                    } else {
+                        System.out.println("   - " + file + " (modified)");
+                    }
+                }
+            }
+
+            System.out.println();
+
+            // Print modified files
+            System.out.println("Modified files:");
+            if(modified.isEmpty()) {
+                System.out.println("     <empty>");
+            } else {
+                for(String file: modified) {
+                    System.out.println("   - " + file);
+                }
+            }
+            System.out.println();
+
+            // Print untracked files
+            System.out.println("Untracked files:");
+            if(untracked.isEmpty()) {
+                System.out.println("     <empty>");
+            } else {
+                for(String file: untracked) {
+                    System.out.println("   - " + file);
+                }
+            }
+            System.out.println();
+
+            // Print unstaged deletions
+            System.out.println("Deleted files:");
+            if(deleted.isEmpty()) {
+                System.out.println("     <empty>");
+            } else {
+                for(String file: deleted) {
+                    System.out.println("   - " + file);
                 }
             }
         }
-
-        System.out.println();
-
-        // Print modified files
-        System.out.println("Modified files:");
-        if(modified.isEmpty()) {
-            System.out.println("     <empty>");
-        } else {
-            for(String file: modified) {
-                System.out.println("   - " + file);
-            }
-        }
-        System.out.println();
-
-        // Print untracked files
-        System.out.println("Untracked files:");
-        if(untracked.isEmpty()) {
-            System.out.println("     <empty>");
-        } else {
-            for(String file: untracked) {
-                System.out.println("   - " + file);
-            }
-        }
-        System.out.println();
-
-        // Print unstaged deletions
-        System.out.println("Deleted files:");
-        if(deleted.isEmpty()) {
-            System.out.println("     <empty>");
-        } else {
-            for(String file: deleted) {
-                System.out.println("   - " + file);
-            }
-        }
-        System.out.println();
     }
 }
