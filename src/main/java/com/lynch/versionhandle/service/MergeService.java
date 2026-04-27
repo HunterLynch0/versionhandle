@@ -78,7 +78,7 @@ public class MergeService {
             List<String> untracked = new ArrayList<>();
             List<String> modified = new ArrayList<>();
 
-            for (Path path : Files.walk(repoPath).toList()) {
+            for (Path path: Files.walk(repoPath).toList()) {
                 if (!Files.isRegularFile(path)) {
                     continue;
                 }
@@ -111,17 +111,17 @@ public class MergeService {
             }
 
             // Abort merge if there are untracked or modified files
-            if (!untracked.isEmpty() || !modified.isEmpty()) {
+            if(!untracked.isEmpty() || !modified.isEmpty()) {
                 System.out.println("Merge aborted: you have uncommitted changes in your working directory.");
-                if (!untracked.isEmpty()) {
+                if(!untracked.isEmpty()) {
                     System.out.println("\nUntracked files:");
-                    for (String path : untracked) {
+                    for(String path: untracked) {
                         System.out.println("   - " + path);
                     }
                 }
-                if (!modified.isEmpty()) {
+                if(!modified.isEmpty()) {
                     System.out.println("\nModified files:");
-                    for (String path : modified) {
+                    for(String path: modified) {
                         System.out.println("   - " + path);
                     }
                 }
@@ -129,7 +129,7 @@ public class MergeService {
                         "\n   - Stage and commit changes to save current working directory.");
                 return;
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             throw new RuntimeException("Failed to loop through working directory.", e);
         }
 
