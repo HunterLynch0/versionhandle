@@ -177,6 +177,62 @@ public class MergeService {
         }
 
         if(!conflicts.isEmpty()) {
+            // Commence merge excluding conflicting files
+            try {
+                for(Path path: Files.walk(repoPath).toList()) {
+                    if(!Files.isRegularFile(path)) {
+                        continue;
+                    }
+
+                    String relativePath = repoPath.relativize(path).toString();
+                    if(IgnoreUtil.shouldIgnore(relativePath)) {
+                        continue;
+                    }
+
+                    if(conflicts.contains(relativePath)) {
+                        continue;
+                    }
+
+                    if(!mergeSnapshot.containsKey(relativePath)) {
+                        Files.deleteIfExists(path);
+                        continue;
+                    }
+
+                    String currentHash = HashUtil.sha256(Files.readAllBytes(path));
+                    String mergedHash = mergeSnapshot.get(relativePath);
+
+                    if(!Objects.equals(currentHash, mergedHash)) {
+                        Path objectPath = vhPath.resolve("objects").resolve(mergedHash);
+                        Files.write(path, Files.readAllBytes(objectPath));
+                    }
+                }
+            } catch(IOException e) {
+                throw new RuntimeException("Failed to loop through working directory", e);
+            }
+
+            for(String file: mergeSnapshot.keySet()) {
+                Path filePath = repoPath.resolve(file);
+
+                if(conflicts.contains(file)) {
+                    continue;
+                }
+
+                if(!Files.exists(filePath)) {
+                    String objectHash = mergeSnapshot.get(file);
+                    Path objectPath = vhPath.resolve("objects").resolve(objectHash);
+
+                    try {
+                        if(filePath.getParent() != null) {
+                            Files.createDirectories(filePath.getParent());
+                        }
+                        Files.write(filePath, Files.readAllBytes(objectPath));
+                    } catch(IOException e) {
+                        throw new RuntimeException("Failed to create and write file: " + filePath);
+                    }
+                }
+            }
+
+            // Write conflict markers
             try {
                 for(String file: conflicts) {
                     // Get content from both snapshots
@@ -212,6 +268,7 @@ public class MergeService {
                 throw new RuntimeException("Failed to write conflict markers", e);
             }
 
+            // Set merge state
             try {
                 Files.writeString(vhPath.resolve("MERGE_HEAD"), targetCommitId);
                 Files.writeString(vhPath.resolve("MERGE_TARGET"), targetName);
@@ -225,8 +282,10 @@ public class MergeService {
                 System.out.println("   - " + file);
             }
 
-            System.out.println("\nConflict markers have been written to the files.");
-            System.out.println("\nTip: Fix conflicts, then stage and commit the resolved files.");
+            System.out.println("\nConflict markers have been written to the files, you are now in merge state.");
+            System.out.println("\nTip:");
+            System.out.println("   - Fix conflicts, then stage and commit the resolved files.");
+            System.out.println("   - Run 'abort merge' to return to pre-merge state.");
             return;
         } else {
             // Rewrite working directory to merged
