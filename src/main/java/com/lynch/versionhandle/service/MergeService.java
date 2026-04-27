@@ -175,11 +175,37 @@ public class MergeService {
         }
 
         if(!conflicts.isEmpty()) {
-            System.out.println("Merge aborted: conflicting file content");
-            System.out.println("Merge conflicts in: ");
-            for(String file: conflicts) {
-                System.out.println("   - "  + file);
+            try {
+                for(String file: conflicts) {
+                    // Get content from both snapshots
+                    String currentHash = currentSnapshot.get(file);
+                    String targetHash = targetSnapshot.get(file);
+                    String currentContent = Files.readAllBytes(vhPath.resolve("objects").resolve(currentHash)).toString();
+                    String targetContent = Files.readAllBytes(vhPath.resolve("objects").resolve(targetHash)).toString();
+
+                    String conflictContent = "<<<<<<< CURRENT\n"+
+                            currentContent +
+                            "=======" +
+                            targetContent +
+                            ">>>>>>> " + targetName + "\n";
+                    Path filePath = repoPath.resolve(file);
+
+                    if(filePath.getParent() != null) {
+                        Files.createDirectories(filePath.getParent());
+                    }
+
+                    Files.writeString(filePath, conflictContent);
+                }
+            } catch(IOException e) {
+                throw new RuntimeException("Failed to write conflict markers", e);
             }
+
+            System.out.println("Merge conflict in:");
+            for(String file : conflicts) {
+                System.out.println("   - " + file);
+            }
+
+            System.out.println("\nConflict markers have been written to the files.");
             System.out.println("\nTip: Fix conflicts, then stage and commit the resolved files.");
             return;
         } else {
