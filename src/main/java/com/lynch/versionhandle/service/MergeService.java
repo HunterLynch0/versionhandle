@@ -478,8 +478,6 @@ public class MergeService {
             throw new RuntimeException("Failed to abort merge." ,e);
         }
 
-
-
         System.out.println("Merge aborted. Pre-merge working directory restored.");
     }
 }

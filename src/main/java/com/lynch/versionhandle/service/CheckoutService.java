@@ -58,7 +58,7 @@ public class CheckoutService {
                     System.out.println("Checkout aborted: you have staged changes.");
                     System.out.println("\nTip:"  +
                             "\n   - Stage and commit changes to save current working directory." +
-                            "\n   - Or run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                            "\n   - Or run 'checkout -f <target>' to force checkout (WARNING: you will lose local changes).");
                     return;
                 }
 
@@ -120,7 +120,7 @@ public class CheckoutService {
                             }
                             System.out.println("\nTip:"  +
                                     "\n   - Stage and commit changes to save current working directory." +
-                                    "\n   - Or run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                                    "\n   - Or run 'checkout -f <target>' to force checkout (WARNING: you will lose local changes).");
                             return;
                         }
                     }
@@ -190,7 +190,7 @@ public class CheckoutService {
                     System.out.println("Checkout aborted: you have staged changes.");
                     System.out.println("\nTip:" +
                             "\n   - Stage and commit changes to save current working directory." +
-                            "\n   - Or run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                            "\n   - Or run 'checkout -f <target>' to force checkout (WARNING: you will lose local changes).");
                     return;
                 }
 
@@ -246,7 +246,7 @@ public class CheckoutService {
                         }
                         System.out.println("\nTip:" +
                                 "\n   - Stage and commit changes to save current working directory." +
-                                "\n   - Or run 'checkout <target> -f' to force checkout (WARNING: you will lose local changes).");
+                                "\n   - Or run 'checkout -f <target>' to force checkout (WARNING: you will lose local changes).");
                         return;
                     }
                 } catch(IOException e) {

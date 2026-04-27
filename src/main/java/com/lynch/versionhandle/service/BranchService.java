@@ -24,6 +24,7 @@ public class BranchService {
         // Abort on reserved name
         if(branchName.equals("--abort")) {
             System.out.println("Error: name '--abort' not allowed, please choose a different branch name.");
+            return;
         }
 
         // Check branch doesnt already exist
