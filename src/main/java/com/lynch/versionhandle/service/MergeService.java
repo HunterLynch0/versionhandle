@@ -404,4 +404,82 @@ public class MergeService {
 
         return null;
     }
+
+    /**
+     * Aborts merge state and returns working directory to pre-merge state
+     * @param repoPath project root repository
+     */
+    public void abort(Path repoPath) {
+
+        // Check project is initialised
+        Path vhPath = repoPath.resolve(".versionhandle");
+
+        if(!Files.exists(vhPath)) {
+            System.out.println("Not a versionhandle repository. Initialise project first.");
+            return;
+        }
+
+        Path mergeHeadPath = vhPath.resolve("MERGE_HEAD");
+        Path mergeTargetPath = vhPath.resolve("MERGE_TARGET");
+
+        if(!Files.exists(mergeHeadPath)) {
+            System.out.println("Error: no merge in progress.");
+            return;
+        }
+
+        CommitService commitService = new CommitService();
+        IndexService indexService = new IndexService();
+
+        String currentCommitId = commitService.readHead(repoPath);
+
+        if(currentCommitId == null) {
+            System.out.println("Error: cannot abort merge - pre merge state (HEAD) is missing.");
+            return;
+        }
+
+        Commit current = commitService.loadCommit(repoPath, currentCommitId);
+
+        try {
+            // Delete files not in HEAD
+            for(Path path: Files.walk(repoPath).toList()) {
+                if(!Files.isRegularFile(path)) {
+                    continue;
+                }
+
+                String relativePath = repoPath.relativize(path).toString();
+
+                if(IgnoreUtil.shouldIgnore(relativePath)) {
+                    continue;
+                }
+
+                if(!current.getSnapshot().containsKey(relativePath)) {
+                    Files.deleteIfExists(path);
+                }
+            }
+
+            // Restore files to HEAD state
+            for(Map.Entry<String, String> entry: current.getSnapshot().entrySet()) {
+                Path filePath = repoPath.resolve(entry.getKey());
+                Path objectPath = vhPath.resolve("objects").resolve(entry.getValue());
+
+                if(filePath.getParent() != null) {
+                    Files.createDirectories(filePath.getParent());
+                }
+
+                Files.write(filePath, Files.readAllBytes(objectPath));
+            }
+
+            // Clear stored merge data + index
+            Files.deleteIfExists(mergeHeadPath);
+            Files.deleteIfExists(mergeTargetPath);
+            indexService.saveIndex(repoPath, new HashMap<>());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to abort merge." ,e);
+        }
+
+
+
+        System.out.println("Merge aborted. Pre-merge working directory restored.");
+    }
 }

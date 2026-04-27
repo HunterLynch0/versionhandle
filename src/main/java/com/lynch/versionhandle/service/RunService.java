@@ -82,7 +82,7 @@ public class RunService {
             Process process = pb.start();
             int exitCode = process.waitFor();
 
-            System.out.println("Process exited with code: " + exitCode);
+            System.out.println("\nProcess exited with code: " + exitCode);
         } catch(InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Command interrupted.", e);

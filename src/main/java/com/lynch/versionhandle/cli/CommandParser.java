@@ -162,7 +162,7 @@ public class CommandParser {
                     System.out.println("\nTip: run 'help' to list valid command usage.");
                     return;
                 } else if(args[2].equals("--abort")) {
-
+                    new MergeService().abort(repoPath);
                 } else {
                     new MergeService().merge(repoPath, args[1]);
                 }
