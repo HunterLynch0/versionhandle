@@ -180,14 +180,14 @@ public class MergeService {
                     // Get content from both snapshots
                     String currentHash = currentSnapshot.get(file);
                     String targetHash = targetSnapshot.get(file);
-                    String currentContent = Files.readAllBytes(vhPath.resolve("objects").resolve(currentHash)).toString();
-                    String targetContent = Files.readAllBytes(vhPath.resolve("objects").resolve(targetHash)).toString();
+                    String currentContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(currentHash)));
+                    String targetContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(targetHash)));
 
                     String conflictContent = "<<<<<<< CURRENT\n"+
                             currentContent +
-                            "=======" +
+                            "\n=======\n" +
                             targetContent +
-                            ">>>>>>> " + targetName + "\n";
+                            "\n>>>>>>> " + targetName + "\n";
                     Path filePath = repoPath.resolve(file);
 
                     if(filePath.getParent() != null) {
