@@ -11,6 +11,8 @@ import java.util.*;
 
 public class MergeService {
 
+    private static final String DELETED = "<DELETED>";
+
     /**
      * Merge target branch into current branch
      * @param repoPath project root repository
@@ -180,8 +182,19 @@ public class MergeService {
                     // Get content from both snapshots
                     String currentHash = currentSnapshot.get(file);
                     String targetHash = targetSnapshot.get(file);
-                    String currentContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(currentHash)));
-                    String targetContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(targetHash)));
+                    String currentContent;
+                    String targetContent;
+                    if(currentHash == null) {
+                        currentContent = DELETED;
+                    } else {
+                        currentContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(currentHash)));
+                    }
+                    if(targetHash == null)  {
+                        targetContent = DELETED;
+                    } else {
+                        targetContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(targetHash)));
+                    }
+
 
                     String conflictContent = "<<<<<<< CURRENT\n"+
                             currentContent +
