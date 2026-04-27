@@ -65,13 +65,39 @@ public class CommitService {
             }
         }
 
+        // Check for merge state / secondParentId
+        Path mergeHeadPath = vhPath.resolve("MERGE_HEAD");
+        Path mergeTargetPath = vhPath.resolve("MERGE_TARGET");
+        String secondParentId = null;
+        String mergeTarget = null;
+
+        try {
+            if(Files.exists(mergeHeadPath)) {
+                secondParentId = Files.readString(mergeHeadPath);
+                mergeTarget = Files.readString(mergeTargetPath);
+            }
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to read merge state.", e);
+        }
+        if(mergeTarget != null) {
+            message = "Merge branch '" + mergeTarget + "' into '" + currentBranch + "': " + message;
+        }
+
         // Create the content first to get the hash for the actual commit, then create the commit with the created commitId
-        String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, null, snapshot));
+        String commitContent = buildCommitContent(new Commit(null, message, timestamp, parentId, secondParentId, snapshot));
         String commitId = HashUtil.sha256(commitContent.getBytes());
-        Commit commit = new Commit(commitId, message, timestamp, parentId, null, snapshot);
+        Commit commit = new Commit(commitId, message, timestamp, parentId, secondParentId, snapshot);
 
         // Finalise the commit
         saveCommit(repoPath, commit);
+
+        // Clear merge state if present
+        try {
+            Files.deleteIfExists(mergeHeadPath);
+            Files.deleteIfExists(mergeTargetPath);
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to clear merge state.", e);
+        }
 
         indexService.saveIndex(repoPath, new HashMap<String, String>());
         writeBranch(repoPath, currentBranch, commitId);

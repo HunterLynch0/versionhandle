@@ -195,7 +195,6 @@ public class MergeService {
                         targetContent = new String(Files.readAllBytes(vhPath.resolve("objects").resolve(targetHash)));
                     }
 
-
                     String conflictContent = "<<<<<<< CURRENT\n"+
                             currentContent +
                             "\n=======\n" +
@@ -211,6 +210,14 @@ public class MergeService {
                 }
             } catch(IOException e) {
                 throw new RuntimeException("Failed to write conflict markers", e);
+            }
+
+            try {
+                Files.writeString(vhPath.resolve("MERGE_HEAD"), targetCommitId);
+                Files.writeString(vhPath.resolve("MERGE_TARGET"), targetName);
+            } catch(IOException e) {
+                throw new RuntimeException("Failed to write merge state.", e);
+
             }
 
             System.out.println("Merge conflict in:");
