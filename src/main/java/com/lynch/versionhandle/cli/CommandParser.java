@@ -161,6 +161,8 @@ public class CommandParser {
                     }
                     System.out.println("\nTip: run 'help' to list valid command usage.");
                     return;
+                } else if(args[2].equals("--abort")) {
+
                 } else {
                     new MergeService().merge(repoPath, args[1]);
                 }
@@ -204,7 +206,7 @@ public class CommandParser {
         System.out.println("   checkout [-f] <commitId|branchName>");
         System.out.println("   run <commitId> -- <command>");
         System.out.println("   branch <branchName>");
-        System.out.println("   merge <branchName>");
+        System.out.println("   merge <branchName> || merge --abort");
         System.out.println("   help");
     }
 }

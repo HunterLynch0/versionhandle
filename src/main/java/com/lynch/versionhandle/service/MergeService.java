@@ -285,7 +285,7 @@ public class MergeService {
             System.out.println("\nConflict markers have been written to the files, you are now in merge state.");
             System.out.println("\nTip:");
             System.out.println("   - Fix conflicts, then stage and commit the resolved files.");
-            System.out.println("   - Run 'abort merge' to return to pre-merge state.");
+            System.out.println("   - Or run 'abort merge' to return to pre-merge state.");
             return;
         } else {
             // Rewrite working directory to merged
