@@ -13,6 +13,7 @@ public class IgnoreUtil {
                 || relativePath.startsWith(".idea")
                 || relativePath.startsWith("target")
                 || relativePath.startsWith("out")
-                || relativePath.equals(".DS_Store");
+                || relativePath.equals(".DS_Store")
+                || relativePath.startsWith("__MACOSX");
     }
 }

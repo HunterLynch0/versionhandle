@@ -33,6 +33,11 @@ public class RunService {
             return;
         }
 
+        if(command.isEmpty()) {
+            System.out.println("Error: missing command.");
+            return;
+        }
+
         Path tempDir;
 
         // Create temporary directory

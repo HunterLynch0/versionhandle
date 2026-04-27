@@ -95,7 +95,7 @@ public class CommandParser {
                             "\nTip: run 'help' to list valid command usage.");
                     return;
                 }
-
+                String target = args[1];
                 boolean force = false;
                 if(args.length == 3) {
                     if(!args[1].equals("-f")) {
@@ -103,9 +103,10 @@ public class CommandParser {
                                 "\nTip: run 'help' to list valid command usage.");
                         return;
                     }
+                    target = args[2];
                     force = true;
                 }
-                new CheckoutService().checkout(repoPath, args[2], force);
+                new CheckoutService().checkout(repoPath, target, force);
                 break;
 
             case "status":
@@ -169,17 +170,17 @@ public class CommandParser {
                 if(args.length < 4) {
                     System.out.println("Error: unknown usage" +
                             "\nTip: run 'help' to list valid command usage.");
+                    return;
                 }
                 if(!args[2].equals("--")) {
                     System.out.println("Error: unknown usage" +
                             "\nTip: run 'help' to list valid command usage.");
+                    return;
                 }
-
                 List<String> runCommand = new ArrayList<>();
                 for(int i = 3; i < args.length; i++) {
                     runCommand.add(args[i]);
                 }
-
                 new RunService().run(repoPath, args[1], runCommand);
                 break;
 

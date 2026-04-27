@@ -5,7 +5,10 @@ import com.lynch.versionhandle.model.Commit;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 
@@ -28,31 +31,46 @@ public class LogService {
         CommitService commitService = new CommitService();
 
         String currentBranch = commitService.readCurrent(repoPath);
-        String commitId = commitService.readHead(repoPath);
+        String headId = commitService.readHead(repoPath);
 
-        if(commitId == null) {
+        if(headId == null) {
             System.out.println("No commits.");
             return;
         }
 
         // Basic info before log
         if(currentBranch == null) {
-            System.out.println("Detached HEAD at " + commitId +
-                    "\n   - Commits are listed descending from HEAD." +
+            System.out.println("Detached HEAD at " + headId +
+                    "\n   - Commits are listed descending from current." +
                     "\n   - To log all commits run 'log -a'\n");
         } else {
             System.out.println("On branch " + currentBranch +
-                    "\n   - Commits are listed descending from HEAD." +
+                    "\n   - Commits are listed descending from current." +
                     "\n   - To log all commits run 'log -a'\n");
         }
 
-        // Print commit chain starting from CURRENT
-        while(commitId != null) {
+        // Traverse parent commits and print
+        Set<String> visited = new HashSet<>();
+        Stack<String> stack = new Stack<>();
+
+        stack.push(headId);
+
+        while(!stack.isEmpty()) {
+            String commitId = stack.pop();
+
+            if(commitId == null || visited.contains(commitId)) {
+                continue;
+            }
+            visited.add(commitId);
+
             Commit commit = commitService.loadCommit(repoPath, commitId);
             printCommit(commit);
 
-            commitId = commit.getParentId();
+            stack.push(commit.getParentId());
+            stack.push(commit.getSecondParentId());
         }
+
+
     }
 
     /**
@@ -91,10 +109,10 @@ public class LogService {
 
             if(currentBranch == null) {
                 System.out.println("Detached HEAD at " + commitId +
-                        "\n   - Commits are listed descending from newest to oldest.");
+                        "\n   - Commits are listed from newest to oldest.");
             } else {
                 System.out.println("On branch " + currentBranch +
-                        "\n   - Commits are listed descending from newest to oldest.");
+                        "\n   - Commits are listed from newest to oldest.");
             }
 
             // Print contents
